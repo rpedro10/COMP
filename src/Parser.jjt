@@ -83,7 +83,7 @@ void ScalarElement(): { }
 }
 void Stmtlst(): { }
 {
-	(Stmt)*
+	(Stmt())*
 }
 void Stmt(): { }
 {
