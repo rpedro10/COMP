@@ -1,5 +1,17 @@
 module Test{
-	function main() {
-		a=3;
+	function a=main(N) {
+		a=3; //Comment
+		i=0;
+		b = [20];
+		b[] = 10;
+		if(N > 30){
+			N = 30;
+		}else{
+			N = 15;
+		}
+		while(i < b.size){
+			a = N + b[i];
+			i = i + 1;
+		}
 	}
 }
