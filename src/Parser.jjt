@@ -6,7 +6,7 @@ PARSER_BEGIN(Parser)
 public class Parser
 {
 	public static void main(String args[]) {
-		
+	  
 	}
 }
 PARSER_END(Parser)
@@ -57,29 +57,39 @@ void Module() : { }
 }
 void Declaration() : { }
 {
-	(ArrayElement()|ScalarElement())( <ASSIGN> ( ( "[" ArraySize() "]" ) | (
+	(/*ArrayElement()|ScalarElement()*/ ScalarElement())( <ASSIGN> ( ( "[" ArraySize() "]" ) | (
 <ADDSUB_OP> )? <INTEGER> ) )? <PVIRG>
 }
 
 void Function() : { }
 {
-	( ( <FUNCTION> ( ArrayElement() | ScalarElement() ) <ASSIGN> <ID> <LPAR>
-( Varlist() )? <RPAR> ) | ( <FUNCTION> <ID> <LPAR> ( Varlist() )? <RPAR> ) )
-<LCHAVETA> Stmtlst() <RCHAVETA>
+	 ( <FUNCTION> ( < ID > ) Function2() )/*<ASSIGN> <ID> <LPAR>( Varlist() )? <RPAR>) | ( <FUNCTION> <ID> <LPAR> ( Varlist() )? <RPAR> ) )<LCHAVETA> Stmtlst() <RCHAVETA>*/
+}
+
+void Function2() : { }
+{
+	((ArrayElement())?<ASSIGN> <ID> <LPAR>( Varlist() )? <RPAR>) | ( <LPAR> ( Varlist() )? <RPAR> ) <LCHAVETA> Stmtlst() <RCHAVETA>
 }
 
 void Varlist(): { }
 {
-	( ArrayElement() | ScalarElement() ) ( <VIRG> ( ArrayElement() |
-ScalarElement() ) )*
+	( /*ArrayElement() | ScalarElement()*/ ScalarElement() ) ( <VIRG> ( /*ArrayElement() | ScalarElement()*/ ScalarElement() ) )*
 }
-void ArrayElement(): { }
+/*void ArrayElement(): { }
 {
 	< ID >"[""]"
 }
 void ScalarElement(): { }
 {
 	< ID >
+}*/
+void ScalarElement(): { }
+{
+	< ID > (ArrayElement())?
+}
+void ArrayElement(): { }
+{
+	"[""]"
 }
 void Stmtlst(): { }
 {
@@ -87,7 +97,7 @@ void Stmtlst(): { }
 }
 void Stmt(): { }
 {
-	While() | If() | Assign() | Call() < PVIRG >
+	While() | If() | < ID > (LOOKAHEAD(("." < ID >)?) Call() | Assign()) < PVIRG > //ID
 }
 void Assign(): { }
 {
@@ -102,14 +112,18 @@ void Rhs(): { }
 	( Term() ( ( <ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP> ) Term() )? )
 | "[" ArraySize() "]"
 }
-void ArraySize(): { }
+void ArraySize(): { } // ++ ID
 {
-	ScalarAccess() | < INTEGER >
+	< ID > ScalarAccess() | < INTEGER >
 }
 void Term(): { }
 {
-	( <ADDSUB_OP> )? ( <INTEGER> | Call() | ArrayAccess() | ScalarAccess() )
+	( <ADDSUB_OP> )? ( <INTEGER> | < ID >( ArrayAccess() | ( LOOKAHEAD(("." < ID >)?) Call() | ScalarAccess())) ) // ID
 }
+
+
+//LOOKAHEAD(< ID > "=" < SOMETHING >) < ID > "=" < SOMETHING > | < ID > "=" < OTHER >
+
 void Exprtest(): { }
 {
 	<LPAR> Lhs() <RELA_OP> Rhs() <RPAR>
@@ -120,12 +134,11 @@ void While(): { }
 }
 void If(): {}
 {
-	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA> ( <ELSE> <LCHAVETA>
-Stmtlst() <RCHAVETA> )?
+	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA> ( <ELSE> <LCHAVETA> Stmtlst() <RCHAVETA> )?
 }
-void Call(): {}
+void Call(): {} // -- ID
 {
-	<ID> ( "." <ID> )? <LPAR> ( ArgumentList() )? <RPAR>
+	 ( "." <ID> )? <LPAR> ( ArgumentList() )? <RPAR>
 }
 void ArgumentList():{}
 {
@@ -135,13 +148,13 @@ void Argument():{}
 {
 	( <ID> | <STRING> | <INTEGER> )
 }
-void ArrayAccess():{}
+void ArrayAccess():{} // -- ID
 {
-	<ID> "[" Index() "]"
+	"[" Index() "]"
 }
-void ScalarAccess():{}
+void ScalarAccess():{} // -- ID
 {
-	<ID> ( "." <SIZE> )?
+	( "." <SIZE> )?
 }
 void Index():{}
 {
