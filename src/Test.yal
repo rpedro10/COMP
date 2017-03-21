@@ -1,0 +1,5 @@
+module Test{
+	function main() {
+		a=3;
+	}
+}

@@ -2,15 +2,33 @@ options
 {
   LOOKAHEAD=1;
 }
+
 PARSER_BEGIN(Parser)
+
+import java.io.*;
+
 public class Parser
 {
-	public static void main(String args[]) throws ParseException {
-	  Parser simpleParser = new Parser(System.in);
-	  simpleParser.Module();
+	public static void main(String args[]) throws ParseException, IOException {
+		if(args.length != 1){
+			System.out.println("Usage: Parser <file.yal>");
+			return;
+		}
+		String filename = args[0];
+		try{
+
+			BufferedReader br = new BufferedReader(new FileReader(filename));
+			Parser simpleParser = new Parser(br);
+	  		simpleParser.Module();
+
+	  	}catch(IOException e){
+	  		e.printStackTrace();
+	  	}
 	}
 }
+
 PARSER_END(Parser)
+
 SKIP:
 {
 	" "
