@@ -191,15 +191,15 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
           ;
         }
         jj_consume_token(RPAR);
-        jj_consume_token(LCHAVETA);
-        Stmtlst();
-        jj_consume_token(RCHAVETA);
         break;
       default:
         jj_la1[8] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
+      jj_consume_token(LCHAVETA);
+      Stmtlst();
+      jj_consume_token(RCHAVETA);
     } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -379,6 +379,7 @@ void ScalarElement(): { }
         jj_consume_token(ID);
         if (jj_2_1(2147483647)) {
           Call();
+          jj_consume_token(PVIRG);
         } else {
           switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
           case ASSIGN:
@@ -392,7 +393,6 @@ void ScalarElement(): { }
             throw new ParseException();
           }
         }
-        jj_consume_token(PVIRG);
         break;
       default:
         jj_la1[13] = jj_gen;
@@ -661,6 +661,7 @@ void ScalarElement(): { }
   jjtree.openNodeScope(jjtn000);
     try {
       jj_consume_token(LPAR);
+      jj_consume_token(ID);
       Lhs();
       jj_consume_token(RELA_OP);
       Rhs();

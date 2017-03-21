@@ -69,7 +69,7 @@ void Function() : { }
 
 void Function2() : { }
 {
-	((ArrayElement())?<ASSIGN> <ID> <LPAR>( Varlist() )? <RPAR>) | ( <LPAR> ( Varlist() )? <RPAR> ) <LCHAVETA> Stmtlst() <RCHAVETA>
+	(((ArrayElement())?<ASSIGN> <ID> <LPAR>( Varlist() )? <RPAR>) | ( <LPAR> ( Varlist() )? <RPAR> )) <LCHAVETA> Stmtlst() <RCHAVETA>
 }
 
 void Varlist(): { }
@@ -98,7 +98,7 @@ void Stmtlst(): { }
 }
 void Stmt(): { }
 {
-	While() | If() | < ID > (LOOKAHEAD(Call()) Call() | Assign()) < PVIRG > //ID
+	While() | If() | < ID > (LOOKAHEAD(Call()) Call() < PVIRG > | Assign())  //ID
 }
 void Assign(): { }
 {
@@ -127,7 +127,7 @@ void Term(): { }
 
 void Exprtest(): { }
 {
-	<LPAR> Lhs() <RELA_OP> Rhs() <RPAR>
+	<LPAR> < ID > Lhs() <RELA_OP> Rhs() <RPAR>
 }
 void While(): { }
 {

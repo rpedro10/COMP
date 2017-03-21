@@ -157,7 +157,7 @@ void Function2() : {/*@bgen(jjtree) Function2 */
 {/*@bgen(jjtree) Function2 */
         try {
 /*@egen*/
-	((ArrayElement())?<ASSIGN> <ID> <LPAR>( Varlist() )? <RPAR>) | ( <LPAR> ( Varlist() )? <RPAR> ) <LCHAVETA> Stmtlst() <RCHAVETA>/*@bgen(jjtree)*/
+	(((ArrayElement())?<ASSIGN> <ID> <LPAR>( Varlist() )? <RPAR>) | ( <LPAR> ( Varlist() )? <RPAR> )) <LCHAVETA> Stmtlst() <RCHAVETA>/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -302,7 +302,7 @@ void Stmt(): {/*@bgen(jjtree) Stmt */
 {/*@bgen(jjtree) Stmt */
         try {
 /*@egen*/
-	While() | If() | < ID > (LOOKAHEAD(Call()) Call() | Assign()) < PVIRG >/*@bgen(jjtree)*/
+	While() | If() | < ID > (LOOKAHEAD(Call()) Call() < PVIRG > | Assign())/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -322,7 +322,7 @@ void Stmt(): {/*@bgen(jjtree) Stmt */
             jjtree.closeNodeScope(jjtn000, true);
           }
         }
-/*@egen*/ //ID
+/*@egen*/  //ID
 }
 void Assign(): {/*@bgen(jjtree) Assign */
   SimpleNode jjtn000 = new SimpleNode(JJTASSIGN);
@@ -487,7 +487,7 @@ void Exprtest(): {/*@bgen(jjtree) Exprtest */
 {/*@bgen(jjtree) Exprtest */
         try {
 /*@egen*/
-	<LPAR> Lhs() <RELA_OP> Rhs() <RPAR>/*@bgen(jjtree)*/
+	<LPAR> < ID > Lhs() <RELA_OP> Rhs() <RPAR>/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
