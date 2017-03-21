@@ -169,7 +169,7 @@ void Argument():{}
 }
 void ArrayAccess():{} // -- ID
 {
-	"[" Index() "]"
+	"[" (Index())? "]" //Optional Index. Now accepts statement b[] = 2; 
 }
 void ScalarAccess():{} // -- ID
 {
