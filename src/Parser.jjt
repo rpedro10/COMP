@@ -5,8 +5,9 @@ options
 PARSER_BEGIN(Parser)
 public class Parser
 {
-	public static void main(String args[]) {
-	  
+	public static void main(String args[]) throws ParseException {
+	  Parser simpleParser = new Parser(System.in);
+	  simpleParser.Module();
 	}
 }
 PARSER_END(Parser)
@@ -53,7 +54,7 @@ TOKEN : {
 
 void Module() : { }
 {
-	<MODULE><ID><LCHAVETA>(Declaration())*(Function())*<RCHAVETA> 
+	<MODULE><ID><LCHAVETA>(Declaration())*(Function())*<RCHAVETA>
 }
 void Declaration() : { }
 {
@@ -97,7 +98,7 @@ void Stmtlst(): { }
 }
 void Stmt(): { }
 {
-	While() | If() | < ID > (LOOKAHEAD(("." < ID >)?) Call() | Assign()) < PVIRG > //ID
+	While() | If() | < ID > (LOOKAHEAD(Call()) Call() | Assign()) < PVIRG > //ID
 }
 void Assign(): { }
 {
@@ -118,7 +119,7 @@ void ArraySize(): { } // ++ ID
 }
 void Term(): { }
 {
-	( <ADDSUB_OP> )? ( <INTEGER> | < ID >( ArrayAccess() | ( LOOKAHEAD(("." < ID >)?) Call() | ScalarAccess())) ) // ID
+	( <ADDSUB_OP> )? ( <INTEGER> | < ID >( ArrayAccess() | ( LOOKAHEAD(Call() ) Call() | ScalarAccess())) ) // ID
 }
 
 

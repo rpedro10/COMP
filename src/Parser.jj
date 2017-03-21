@@ -9,8 +9,9 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
   protected static JJTParserState jjtree = new JJTParserState();
 
 /*@egen*/
-	public static void main(String args[]) {
-	  
+	public static void main(String args[]) throws ParseException {
+	  Parser simpleParser = new Parser(System.in);
+	  simpleParser.Module();
 	}
 }
 PARSER_END(Parser)
@@ -83,7 +84,7 @@ void Module() : {/*@bgen(jjtree) Module */
             jjtree.closeNodeScope(jjtn000, true);
           }
         }
-/*@egen*/ 
+/*@egen*/
 }
 void Declaration() : {/*@bgen(jjtree) Declaration */
   SimpleNode jjtn000 = new SimpleNode(JJTDECLARATION);
@@ -301,7 +302,7 @@ void Stmt(): {/*@bgen(jjtree) Stmt */
 {/*@bgen(jjtree) Stmt */
         try {
 /*@egen*/
-	While() | If() | < ID > (LOOKAHEAD(("." < ID >)?) Call() | Assign()) < PVIRG >/*@bgen(jjtree)*/
+	While() | If() | < ID > (LOOKAHEAD(Call()) Call() | Assign()) < PVIRG >/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -452,7 +453,7 @@ void Term(): {/*@bgen(jjtree) Term */
 {/*@bgen(jjtree) Term */
         try {
 /*@egen*/
-	( <ADDSUB_OP> )? ( <INTEGER> | < ID >( ArrayAccess() | ( LOOKAHEAD(("." < ID >)?) Call() | ScalarAccess())) )/*@bgen(jjtree)*/
+	( <ADDSUB_OP> )? ( <INTEGER> | < ID >( ArrayAccess() | ( LOOKAHEAD(Call() ) Call() | ScalarAccess())) )/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
