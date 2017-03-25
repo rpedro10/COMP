@@ -4,52 +4,48 @@ public interface ParserTreeConstants
   public int JJTMODULE = 0;
   public int JJTDECLARATION = 1;
   public int JJTFUNCTION = 2;
-  public int JJTFUNCTION2 = 3;
-  public int JJTVARLIST = 4;
-  public int JJTSCALARELEMENT = 5;
-  public int JJTARRAYELEMENT = 6;
-  public int JJTSTMTLST = 7;
-  public int JJTSTMT = 8;
-  public int JJTASSIGN = 9;
-  public int JJTLHS = 10;
-  public int JJTRHS = 11;
-  public int JJTARRAYSIZE = 12;
-  public int JJTTERM = 13;
+  public int JJTRETURN = 3;
+  public int JJTPARAMETERS = 4;
+  public int JJTVOID = 5;
+  public int JJTID = 6;
+  public int JJTINTEGER = 7;
+  public int JJTARRAYELEMENT = 8;
+  public int JJTCALL = 9;
+  public int JJTASSIGN = 10;
+  public int JJTARRAY = 11;
+  public int JJTARRAYACCESS = 12;
+  public int JJTARRAYSIZE = 13;
   public int JJTEXPRTEST = 14;
   public int JJTWHILE = 15;
   public int JJTIF = 16;
-  public int JJTCALL = 17;
+  public int JJTELSE = 17;
   public int JJTARGUMENTLIST = 18;
   public int JJTARGUMENT = 19;
-  public int JJTARRAYACCESS = 20;
-  public int JJTSCALARACCESS = 21;
-  public int JJTINDEX = 22;
+  public int JJTINDEX = 20;
 
 
   public String[] jjtNodeName = {
     "Module",
     "Declaration",
     "Function",
-    "Function2",
-    "Varlist",
-    "ScalarElement",
+    "Return",
+    "Parameters",
+    "void",
+    "Id",
+    "Integer",
     "ArrayElement",
-    "Stmtlst",
-    "Stmt",
+    "Call",
     "Assign",
-    "Lhs",
-    "Rhs",
+    "Array",
+    "ArrayAccess",
     "ArraySize",
-    "Term",
     "Exprtest",
     "While",
     "If",
-    "Call",
+    "Else",
     "ArgumentList",
     "Argument",
-    "ArrayAccess",
-    "ScalarAccess",
     "Index",
   };
 }
-/* JavaCC - OriginalChecksum=10e903b6cf95a1ba827d9205bb08eb90 (do not edit this line) */
+/* JavaCC - OriginalChecksum=5c58812768982836662e5a49c3ead256 (do not edit this line) */

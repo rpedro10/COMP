@@ -8,6 +8,9 @@ class SimpleNode implements Node {
   protected int id;
   protected Object value;
   protected Parser parser;
+  
+  //Added
+  public String val = "Undefined";
 
   public SimpleNode(int i) {
     id = i;
@@ -62,15 +65,27 @@ class SimpleNode implements Node {
      out its children. */
 
   public void dump(String prefix) {
-    System.out.println(toString(prefix));
+    
     if (children != null) {
+      switch (this.id){
+      case ParserTreeConstants.JJTEXPRTEST:
+      	System.out.println(prefix+this.val);
+      	break;
+      case ParserTreeConstants.JJTASSIGN:
+        	System.out.println(prefix+this.val);
+        	break;
+      default:
+    	System.out.println(toString(prefix));
+      	break;
+      
+      }
       for (int i = 0; i < children.length; ++i) {
         SimpleNode n = (SimpleNode)children[i];
         if (n != null) {
           n.dump(prefix + " ");
         }
       }
-    }
+    }else{System.out.println(toString(prefix) + ": " + this.val);}
   }
 }
 

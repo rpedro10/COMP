@@ -19,7 +19,8 @@ public class Parser
 
 			BufferedReader br = new BufferedReader(new FileReader(filename));
 			Parser simpleParser = new Parser(br);
-	  		simpleParser.Module();
+			SimpleNode root = simpleParser.Module();
+	  		root.dump("");
 
 	  	}catch(IOException e){
 	  		e.printStackTrace();
@@ -70,82 +71,98 @@ TOKEN : {
 | <STRING: "\"" (["a"-"z","A"-"Z","0"-"9",":"," ","="])+ "\"">
 }
 
-void Module() : { }
+SimpleNode Module() : { }
 {
-	<MODULE><ID><LCHAVETA>(Declaration())*(Function())*<RCHAVETA>
+	<MODULE>Id()<LCHAVETA>(Declaration())*(Function())*<RCHAVETA> { return jjtThis; }
 }
 void Declaration() : { }
 {
-	(/*ArrayElement()|ScalarElement()*/ ScalarElement())( <ASSIGN> ( ( "[" ArraySize() "]" ) | (
-<ADDSUB_OP> )? <INTEGER> ) )? <PVIRG>
+	(ScalarElement())( <ASSIGN> ( ( "[" ArraySize() "]" ) | (<ADDSUB_OP> )? <INTEGER> ) )? <PVIRG>
 }
 
 void Function() : { }
 {
-	 ( <FUNCTION> ( < ID > ) Function2() )/*<ASSIGN> <ID> <LPAR>( Varlist() )? <RPAR>) | ( <FUNCTION> <ID> <LPAR> ( Varlist() )? <RPAR> ) )<LCHAVETA> Stmtlst() <RCHAVETA>*/
+	  <FUNCTION> Function2()#Return(>1) <LPAR> ( Varlist()#Parameters )? <RPAR>  <LCHAVETA> Stmtlst() <RCHAVETA>
 }
 
-void Function2() : { }
+void Function2() #void : { Token id; }
 {
-	(((ArrayElement())?<ASSIGN> <ID> <LPAR>( Varlist() )? <RPAR>) | ( <LPAR> ( Varlist() )? <RPAR> )) <LCHAVETA> Stmtlst() <RCHAVETA>
+	 Id() ((ArrayElement())?<ASSIGN>  Id())?
 }
 
-void Varlist(): { }
+void Function3() #void : { }
 {
-	( /*ArrayElement() | ScalarElement()*/ ScalarElement() ) ( <VIRG> ( /*ArrayElement() | ScalarElement()*/ ScalarElement() ) )*
+  (ArrayElement())?<ASSIGN>  Id()
 }
-/*void ArrayElement(): { }
+
+void Id() : { Token id; }
 {
-	< ID >"[""]"
+ id=< ID > { jjtThis.val = id.image; }
 }
-void ScalarElement(): { }
+void Integer() : { Token integer; }
 {
-	< ID >
-}*/
-void ScalarElement(): { }
+	integer=< INTEGER > { jjtThis.val = integer.image;}
+}
+
+void Varlist()#void: { }
 {
-	< ID > (ArrayElement())?
+	(  ScalarElement() ) ( <VIRG> ( ScalarElement() ) )*
+}
+
+void ScalarElement()#void: { }
+{
+	Id() (ArrayElement())?
 }
 void ArrayElement(): { }
 {
 	"[""]"
 }
-void Stmtlst(): { }
+void Stmtlst() #void : { }
 {
 	(Stmt())*
 }
-void Stmt(): { }
+void Stmt()#void: { }
 {
-	While() | If() | < ID > (LOOKAHEAD(Call()) Call() < PVIRG > | Assign())  //ID
+	While() | If() | (LOOKAHEAD(Call()) Call() < PVIRG > | Assign())   //ID
 }
-void Assign(): { }
+void Call(): {}
 {
-	Lhs()< ASSIGN >Rhs()<PVIRG>
+	 Id() ( "." Id() )? <LPAR> ( ArgumentList() )? <RPAR>
 }
-void Lhs(): { }
+void Assign(): { Token assign; }
 {
-	ArrayAccess() | ScalarAccess()
+	Lhs()#Array(>1) assign=< ASSIGN > { jjtThis.val = assign.image; }Rhs()<PVIRG>
 }
-void Rhs(): { }
+void Lhs() #void : { }
 {
-	( Term() ( ( <ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP> ) Term() )? )
-| "[" ArraySize() "]"
+	Id() (ArrayAccess() | ScalarAccess())
 }
+void Rhs() #void : { }
+{
+	( Term() ( ( <ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP> ) Term() )? )| "[" ArraySize() "]"
+}
+
+void ArrayAccess():{ Token ind = new Token(); ind.image = "undefined"; } // -- ID
+{
+	"[" (ind=< ID >| ind=< INTEGER >)? "]" { jjtThis.val = ind.image=="undefined"?"[]":"["+ind.image+"]"; } //Optional Index. Now accepts statement b[] = 2; 
+}
+void ScalarAccess()#void:{} // -- ID
+{
+	 ("." <SIZE>)? 
+}
+
 void ArraySize(): { } // ++ ID
 {
-	< ID > ScalarAccess() | < INTEGER >
+	Id() ScalarAccess() | Integer()
 }
-void Term(): { }
+void Term()#void: { }
 {
-	( <ADDSUB_OP> )? ( <INTEGER> | < ID >( ArrayAccess() | ( LOOKAHEAD(Call() ) Call() | ScalarAccess())) ) // ID
+	( <ADDSUB_OP> )? ( Integer() | LOOKAHEAD(Call()) Call() | Id() ( ArrayAccess() | ScalarAccess())) // ID
 }
 
-
-//LOOKAHEAD(< ID > "=" < SOMETHING >) < ID > "=" < SOMETHING > | < ID > "=" < OTHER >
-
-void Exprtest(): { }
+void Exprtest(): { Token RelOp; }
 {
-	<LPAR> < ID > Lhs() <RELA_OP> Rhs() <RPAR>
+	<LPAR> Lhs() RelOp=<RELA_OP> { jjtThis.val = RelOp.image; } Rhs() <RPAR>
 }
 void While(): { }
 {
@@ -153,11 +170,7 @@ void While(): { }
 }
 void If(): {}
 {
-	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA> ( <ELSE> <LCHAVETA> Stmtlst() <RCHAVETA> )?
-}
-void Call(): {} // -- ID
-{
-	 ( "." <ID> )? <LPAR> ( ArgumentList() )? <RPAR>
+	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA> ( <ELSE> <LCHAVETA> Stmtlst()#Else <RCHAVETA> )?
 }
 void ArgumentList():{}
 {
@@ -165,17 +178,10 @@ void ArgumentList():{}
 }
 void Argument():{}
 {
-	( <ID> | <STRING> | <INTEGER> )
+	( Id() | <STRING> | Integer() )
 }
-void ArrayAccess():{} // -- ID
+
+Token Index():{Token t;}
 {
-	"[" (Index())? "]" //Optional Index. Now accepts statement b[] = 2; 
-}
-void ScalarAccess():{} // -- ID
-{
-	( "." <SIZE> )?
-}
-void Index():{}
-{
-	<ID>|<INTEGER>
+	(t=< ID >| t=< INTEGER >) { return t; }
 }
