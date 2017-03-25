@@ -137,9 +137,9 @@ void Lhs() #void : { }
 {
 	Id() (ArrayAccess() | ScalarAccess())
 }
-void Rhs() #void : { }
+void Rhs() : { Token Op  = new Token(); Op.image = "Undefined";}
 {
-	( Term() ( ( <ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP> ) Term() )? )| "[" ArraySize() "]"
+	( Term() ( ( Op=<ARITH_OP> | Op=<BITWISE_OP> | Op=<ADDSUB_OP> ) { jjtThis.val = Op.image; } Term() )? )| "[" ArraySize() "]"
 }
 
 void ArrayAccess():{ Token ind = new Token(); ind.image = "undefined"; } // -- ID
@@ -155,7 +155,7 @@ void ArraySize(): { } // ++ ID
 {
 	Id() ScalarAccess() | Integer()
 }
-void Term()#void: { }
+void Term(): { }
 {
 	( <ADDSUB_OP> )? ( Integer() | LOOKAHEAD(Call()) Call() | Id() ( ArrayAccess() | ScalarAccess())) // ID
 }

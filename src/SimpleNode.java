@@ -74,6 +74,26 @@ class SimpleNode implements Node {
       case ParserTreeConstants.JJTASSIGN:
         	System.out.println(prefix+this.val);
         	break;
+      case ParserTreeConstants.JJTRHS:
+    	if(this.val !="Undefined"){
+    		System.out.println(prefix+this.val);
+    	}
+    	else{
+    		prefix = prefix.substring(0, prefix.length()-1);
+    	}
+      	break;
+      case ParserTreeConstants.JJTTERM:
+      	if(children.length > 1){
+      		SimpleNode aux = (SimpleNode)children[1];
+      		switch(aux.id){
+      		case ParserTreeConstants.JJTARRAYACCESS:
+      			System.out.println(prefix + "Array");
+      		}
+      	}
+      	else{
+      		prefix = prefix.substring(0, prefix.length()-1);
+      	}
+      	break;
       default:
     	System.out.println(toString(prefix));
       	break;
