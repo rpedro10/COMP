@@ -176,7 +176,7 @@ void ArgumentList():{}
 {
 	Argument() ( <VIRG> Argument() )*
 }
-void Argument():{}
+void Argument()#void:{}
 {
 	( Id() | <STRING> | Integer() )
 }
