@@ -6,7 +6,7 @@ import java.util.ArrayList;
 class SymbolTable {
 	
     ArrayList<Symbol> tbl;
-    int scope;
+    int scope=0;
     
     Symbol insert(String name,String type) {
 		Symbol symbol = new Symbol(name,type,getScope());
