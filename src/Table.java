@@ -43,4 +43,18 @@ class SymbolTable {
 		}
 		scope --;
 	}
+	Symbol scopeContains(String name) {
+		Symbol symbol = null;
+		for (int i = tbl.size() - 1; i >= 0; i--) {
+			symbol = tbl.get(i);
+			if (symbol.getScope()==this.getScope()) {
+				if (symbol.getName().equals(name)) {
+					return symbol;
+				}
+			} else {
+				break;
+			}
+		}
+		return null;
+	}
 }
