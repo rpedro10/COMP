@@ -64,22 +64,26 @@ class SimpleNode implements Node {
   /* Override this method if you want to customize how the node dumps
      out its children. */
 
-  public void dump(String prefix) {
-    
+  public void dump(String prefix, semantic.HIRTree hr) {
+    boolean makeChild = true;
     if (children != null) {
       switch (this.id){
       case ParserTreeConstants.JJTEXPRTEST:
       	System.out.println(prefix+this.val);
+      	hr.setContents("exprtest", this.val);
       	break;
       case ParserTreeConstants.JJTASSIGN:
         	System.out.println(prefix+this.val);
+        	hr.setContents("assign", this.val);
         	break;
       case ParserTreeConstants.JJTRHS:
     	if(this.val !="Undefined"){
     		System.out.println(prefix+this.val);
+    		hr.setId(this.val);
     	}
     	else{
     		prefix = prefix.substring(0, prefix.length()-1);
+    		makeChild = false;
     	}
       	break;
       case ParserTreeConstants.JJTTERM:
@@ -88,24 +92,32 @@ class SimpleNode implements Node {
       		switch(aux.id){
       		case ParserTreeConstants.JJTARRAYACCESS:
       			System.out.println(prefix + "Array");
+      			hr.setId("Array");
       		}
       	}
       	else{
       		prefix = prefix.substring(0, prefix.length()-1);
+      		makeChild = false;
       	}
       	break;
       default:
     	System.out.println(toString(prefix));
+    	hr.setId(toString());
       	break;
       
       }
       for (int i = 0; i < children.length; ++i) {
         SimpleNode n = (SimpleNode)children[i];
         if (n != null) {
-          n.dump(prefix + " ");
+          semantic.HIRTree child = makeChild == true ? new semantic.HIRTree(hr) : hr;
+          if(makeChild)hr.addChild(child);
+          n.dump(prefix + " ", child);
         }
       }
-    }else{System.out.println(toString(prefix) + ": " + this.val);}
+    }else{
+    	System.out.println(toString(prefix) + ": " + this.val);
+    	hr.setContents(toString(), this.val);
+    	}
   }
 }
 

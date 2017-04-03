@@ -20,7 +20,10 @@ public class Parser
 			BufferedReader br = new BufferedReader(new FileReader(filename));
 			Parser simpleParser = new Parser(br);
 			SimpleNode root = simpleParser.Module();
-	  		root.dump("");
+			semantic.HIRTree hir = new semantic.HIRTree();
+	  		root.dump("", hir);
+	  		System.out.println("end");
+	  		hir.dump("");
 
 	  	}catch(IOException e){
 	  		e.printStackTrace();
