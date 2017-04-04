@@ -3,9 +3,45 @@ import java.util.ArrayList;
 
 
 class SymbolTable {
-	
+	SymbolTable parent;
+	SymbolTable[] children;
     ArrayList<Symbol> tbl;
     int scope=0;
+    
+    public SymbolTable(HIRTree hr){
+    	this.buildTable(hr);
+    }
+    
+    public SymbolTable(SymbolTable parent, int scope){
+    	this.parent = parent;
+    	this.scope = scope;
+    }
+    
+    public void buildTable(HIRTree hr){
+    	HIRTree child;
+    	switch (hr.getId()){
+    	case "Module":
+    		for(int i = 0; i < hr.getChildren().length; i++){
+    			child = hr.getChild(i);
+    			if(i == 0){ //Add module name to table
+    				tbl.add(new Symbol(child.getVal(), child.getId(),0));
+    			}
+    			if( i == 1 && child.getId().equals("Declaration")){
+    				this.children = new SymbolTable[1];
+    				SymbolTable decl = new SymbolTable(this, 0);
+    				this.children[0] = decl;
+    				decl.buildTable(child);
+    			}
+    		}
+       		break;
+    	case "Declaration":
+    		tbl.add(new Symbol(null, "Declaration", 0));
+    		for(int i = 0; i < hr.getChildren().length; i++){
+    			
+    		}
+    		break;
+    	}
+    }
     
     Symbol insert(String name,String type) {
 		Symbol symbol = new Symbol(name,type,getScope());

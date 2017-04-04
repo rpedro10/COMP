@@ -3,8 +3,8 @@ package semantic;
 public class HIRTree implements HIRNode {
 	protected HIRTree parent;
 	protected HIRTree children[];
-	protected String id;
-	protected String value;
+	protected String id; //Identifiers, Module, Integer, Expr, Add, ect.
+	protected String value; //Value of the identifiers, names, numbers, arithexpr etc..
 	
 	public HIRTree(){
 		
