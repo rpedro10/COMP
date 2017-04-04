@@ -1,7 +1,7 @@
 module Test{
 	
 	a=3;
-	
+	c;
 	function a=main(N) {
 		a=3; //Comment
 		i=0;
@@ -13,7 +13,7 @@ module Test{
 			N = 15;
 		}
 		while(i < b.size){
-			a = N + b[i];
+			a = N * b[i];
 			i = i + 1;
 		}
 		a = io.test(8,10);
