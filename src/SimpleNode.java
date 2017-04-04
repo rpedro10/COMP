@@ -68,6 +68,26 @@ class SimpleNode implements Node {
     boolean makeChild = true;
     if (children != null) {
       switch (this.id){
+      case ParserTreeConstants.JJTDECLARATION:
+    	  if(this.val != "Undefined"){
+    		 System.out.println(prefix + this.val);
+    		 hr.setId(this.val);
+    	  }else{
+    		  prefix = prefix.substring(0, prefix.length()-1);
+    		  makeChild = false;
+    	  }
+    	  
+    	  break;
+      case ParserTreeConstants.JJTDECLARATIONRHS:
+    	  if(this.val !="Undefined"){
+      		System.out.println(prefix+this.val);
+      		hr.setId(this.val);
+	      	}
+	      	else{
+	      		prefix = prefix.substring(0, prefix.length()-1);
+	      		makeChild = false;
+	      	}
+    	  break;
       case ParserTreeConstants.JJTEXPRTEST:
       	System.out.println(prefix+this.val);
       	hr.setContents("exprtest", this.val);

@@ -22,8 +22,9 @@ public class Parser
 			SimpleNode root = simpleParser.Module();
 			semantic.HIRTree hir = new semantic.HIRTree();
 	  		root.dump("", hir);
-	  		System.out.println("end");
+	  		System.out.println("======HIR TREE======");
 	  		hir.dump("");
+	  		
 
 	  	}catch(IOException e){
 	  		e.printStackTrace();
@@ -76,12 +77,23 @@ TOKEN : {
 
 SimpleNode Module() : { }
 {
-	<MODULE>Id()<LCHAVETA>(Declaration())*(Function())*<RCHAVETA> { return jjtThis; }
+	<MODULE>Id()<LCHAVETA>(DeclarationList())(Function())*<RCHAVETA> { return jjtThis; }
 }
-void Declaration() : { }
+
+void DeclarationList(): { }
 {
-	(ScalarElement())( <ASSIGN> ( ( "[" ArraySize() "]" ) | (<ADDSUB_OP> )? <INTEGER> ) )? <PVIRG>
+	(Declaration())*
 }
+void Declaration() : { Token assign;  }
+{
+	(ScalarElement())( assign=<ASSIGN> { jjtThis.val = assign.image; } DeclarationRHS() )? <PVIRG>
+}
+
+void DeclarationRHS() : { Token id = new Token(); id.image = "undefined"; }
+{
+	( ( "[" ArraySize() "]" ) | (id=<ADDSUB_OP> { jjtThis.val = id.image; } )? Integer() )
+}
+
 
 void Function() : { }
 {
