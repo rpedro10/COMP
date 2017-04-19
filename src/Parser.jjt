@@ -22,7 +22,7 @@ public class Parser
 			SimpleNode root = simpleParser.Module();
 			semantic.HIRTree hir = new semantic.HIRTree();
 	  		root.dump("", hir);
-	  		System.out.println("======HIR TREE======");
+	  		System.out.println("====== HIR TREE ======");
 	  		hir.dump("");
 	  		
 

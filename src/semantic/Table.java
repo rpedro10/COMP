@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 class SymbolTable {
 	SymbolTable parent;
-	SymbolTable[] children;
+	ArrayList<SymbolTable> children;
     ArrayList<Symbol> tbl;
     int scope=0;
     
@@ -43,8 +43,8 @@ class SymbolTable {
     	}
     }
     
-    Symbol insert(String name,String type) {
-		Symbol symbol = new Symbol(name,type,getScope());
+    Symbol insert(String name,String type, boolean initialized) {
+		Symbol symbol = new Symbol(name,type,initialized);
 		tbl.add(symbol);
 		return symbol;
 	}

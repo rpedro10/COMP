@@ -2,15 +2,15 @@ package semantic;
 
 public class Symbol {
 	
-	String name;
-	String type;
-	int scope;
-	
-	public Symbol(String name, String type,int scope) {
+	private String name;
+	private String type;
+	private boolean initialized;
+
+	public Symbol(String name, String type, boolean initialized) {
 		super();
 		this.name = name;
 		this.type = type;
-		this.scope =scope;
+		this.initialized = initialized;
 	}
 
 	public String getName() {
@@ -21,10 +21,13 @@ public class Symbol {
 		return type;
 	}
 
-	public int getScope() {
-		return scope;
+	public boolean getInitialized() {
+		return initialized;
 	}
 	
+	public void setInitialized(){
+		initialized = true;
+	}
 
 }
 
