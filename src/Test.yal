@@ -1,8 +1,8 @@
 module Test{
 	
-	a=3;
+	a=2;
 	c;
-	function a=main(N) {
+	function a=main(N, B[]) {
 		a=3; //Comment
 		i=0;
 		b = [20];
