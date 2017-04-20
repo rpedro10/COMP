@@ -68,10 +68,20 @@ class SimpleNode implements Node {
     boolean makeChild = true;
     if (children != null) {
       switch (this.id){
+      case ParserTreeConstants.JJTPARAM:
+    	  if(children.length != 1){
+    		  SimpleNode child = (SimpleNode)children[0];
+    		  hr.setContents("Array", child.val);
+    		  this.children = new Node[0];
+    	  }else{
+    		  prefix = prefix.substring(0, prefix.length()-1);
+    		  makeChild = false;
+    	  }
+    	  break;
       case ParserTreeConstants.JJTDECLARATION:
     	  if(this.val != "Undefined"){
-    		 System.out.println(prefix + this.val);
-    		 hr.setId(this.val);
+    		 //System.out.println(prefix + this.val);
+    		 hr.setContents("Assign",this.val);
     	  }else{
     		  prefix = prefix.substring(0, prefix.length()-1);
     		  makeChild = false;
@@ -80,8 +90,8 @@ class SimpleNode implements Node {
     	  break;
       case ParserTreeConstants.JJTDECLARATIONRHS:
     	  if(this.val !="Undefined"){
-      		System.out.println(prefix+this.val);
-      		hr.setId(this.val);
+      		//System.out.println(prefix+this.val);
+      		hr.setContents("Arith", this.val);
 	      	}
 	      	else{
 	      		prefix = prefix.substring(0, prefix.length()-1);
@@ -89,17 +99,17 @@ class SimpleNode implements Node {
 	      	}
     	  break;
       case ParserTreeConstants.JJTEXPRTEST:
-      	System.out.println(prefix+this.val);
-      	hr.setContents("exprtest", this.val);
+      	//System.out.println(prefix+this.val);
+      	hr.setContents("Exprtest", this.val);
       	break;
       case ParserTreeConstants.JJTASSIGN:
-        	System.out.println(prefix+this.val);
-        	hr.setContents("assign", this.val);
+        	//System.out.println(prefix+this.val);
+        	hr.setContents("Assign", this.val);
         	break;
       case ParserTreeConstants.JJTRHS:
     	if(this.val !="Undefined"){
-    		System.out.println(prefix+this.val);
-    		hr.setId(this.val);
+    		//System.out.println(prefix+this.val);
+    		hr.setContents("Arith", this.val);
     	}
     	else{
     		prefix = prefix.substring(0, prefix.length()-1);
@@ -111,7 +121,7 @@ class SimpleNode implements Node {
       		SimpleNode aux = (SimpleNode)children[1];
       		switch(aux.id){
       		case ParserTreeConstants.JJTARRAYACCESS:
-      			System.out.println(prefix + "Array");
+      		//	System.out.println(prefix + "Array");
       			hr.setId("Array");
       		}
       	}
@@ -121,7 +131,7 @@ class SimpleNode implements Node {
       	}
       	break;
       default:
-    	System.out.println(toString(prefix));
+    	//System.out.println(toString(prefix));
     	hr.setId(toString());
       	break;
       
@@ -135,7 +145,7 @@ class SimpleNode implements Node {
         }
       }
     }else{
-    	System.out.println(toString(prefix) + ": " + this.val);
+    	//System.out.println(toString(prefix) + ": " + this.val);
     	hr.setContents(toString(), this.val);
     	}
   }

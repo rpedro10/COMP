@@ -22,7 +22,6 @@ public class Parser
 			SimpleNode root = simpleParser.Module();
 			semantic.HIRTree hir = new semantic.HIRTree();
 	  		root.dump("", hir);
-	  		System.out.println("====== HIR TREE ======");
 	  		hir.dump("");
 	  		
 
@@ -121,7 +120,7 @@ void Integer() : { Token integer; }
 
 void Varlist()#void: { }
 {
-	(  ScalarElement() ) ( <VIRG> ( ScalarElement() ) )*
+	(  ScalarElement()#param ) ( <VIRG> ( ScalarElement()#param ) )*
 }
 
 void ScalarElement()#void: { }
