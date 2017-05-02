@@ -1,6 +1,8 @@
 package semantic;
 import java.util.ArrayList;
 
+import javax.xml.soap.Node;
+
 public class Error {
 	
 	String funcName;

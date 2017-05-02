@@ -1,4 +1,3 @@
-package first;
 
 import java.util.Vector;
 
@@ -6,13 +5,13 @@ public class Symbol {
 	
 	String name;
 	String type;
-	int scope;
+	Boolean initialized;
 	
-	public Symbol(String name, String type,int scope) {
+	public Symbol(String name, String type,boolean init) {
 		super();
 		this.name = name;
 		this.type = type;
-		this.scope =scope;
+		this.initialized=init;
 	}
 
 	public String getName() {
@@ -23,9 +22,7 @@ public class Symbol {
 		return type;
 	}
 
-	public int getScope() {
-		return scope;
-	}
+	
 	
 
 }

@@ -2,39 +2,44 @@
 public interface ParserTreeConstants
 {
   public int JJTMODULE = 0;
-  public int JJTDECLARATION = 1;
-  public int JJTFUNCTION = 2;
-  public int JJTRETURN = 3;
-  public int JJTPARAMETERS = 4;
-  public int JJTVOID = 5;
-  public int JJTID = 6;
-  public int JJTINTEGER = 7;
-  public int JJTARRAYELEMENT = 8;
-  public int JJTCALL = 9;
-  public int JJTASSIGN = 10;
-  public int JJTARRAY = 11;
-  public int JJTRHS = 12;
-  public int JJTARRAYACCESS = 13;
-  public int JJTARRAYSIZE = 14;
-  public int JJTTERM = 15;
-  public int JJTEXPRTEST = 16;
-  public int JJTWHILE = 17;
-  public int JJTIF = 18;
-  public int JJTELSE = 19;
-  public int JJTARGUMENTLIST = 20;
-  public int JJTARGUMENT = 21;
-  public int JJTINDEX = 22;
+  public int JJTDECLARATIONLIST = 1;
+  public int JJTDECLARATION = 2;
+  public int JJTDECLARATIONRHS = 3;
+  public int JJTFUNCTION = 4;
+  public int JJTRETURN = 5;
+  public int JJTPARAMETERS = 6;
+  public int JJTVOID = 7;
+  public int JJTID = 8;
+  public int JJTINTEGER = 9;
+  public int JJTPARAM = 10;
+  public int JJTARRAYELEMENT = 11;
+  public int JJTCALL = 12;
+  public int JJTASSIGN = 13;
+  public int JJTARRAY = 14;
+  public int JJTRHS = 15;
+  public int JJTARRAYACCESS = 16;
+  public int JJTARRAYSIZE = 17;
+  public int JJTTERM = 18;
+  public int JJTEXPRTEST = 19;
+  public int JJTWHILE = 20;
+  public int JJTIF = 21;
+  public int JJTELSE = 22;
+  public int JJTARGUMENTLIST = 23;
+  public int JJTINDEX = 24;
 
 
   public String[] jjtNodeName = {
     "Module",
+    "DeclarationList",
     "Declaration",
+    "DeclarationRHS",
     "Function",
     "Return",
     "Parameters",
     "void",
     "Id",
     "Integer",
+    "param",
     "ArrayElement",
     "Call",
     "Assign",
@@ -48,8 +53,7 @@ public interface ParserTreeConstants
     "If",
     "Else",
     "ArgumentList",
-    "Argument",
     "Index",
   };
 }
-/* JavaCC - OriginalChecksum=8dd955092d8e3b5258c096ef28786eaa (do not edit this line) */
+/* JavaCC - OriginalChecksum=f050d7b976c0ad9040127aa919939178 (do not edit this line) */

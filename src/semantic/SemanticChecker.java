@@ -6,23 +6,66 @@ public class SemanticChecker {
 	private SymbolTable symbolTable;
 	private ArrayList<Error> error_list;
 	//TODO MODULE WARNINGS
-	//private HIRTree tree;
+	private HIRTree tree;
 	private int errorCount;
 
 	public SemanticChecker(){ //(/*HIRTree tree*/) {
-		symbolTable = new SymbolTable();
+		symbolTable = new SymbolTable(symbolTable);
 		errorCount = 0;
-		symbolTable.beginScope();
-		error_list = new ArrayList<Error>();	
-		//this.tree = tree;
+		error_list = new ArrayList<Error>();
+	//	this.tree = tree;
 	}
 
-	public ArrayList<Error> runSemanticCheck(HIRTree tree){
-		switch(id){
-			case "Module":
-				checkModule(tree);
-				break;
-		}
+	public ArrayList<Error> runSemanticCheck(HIRTree hr,SymbolTable symbolTable){
+		ArrayList<Error> erros = new  ArrayList<Error>() ;
+		HIRTree child;
+    	switch (hr.getId()){
+    	case "Module":
+    		for(int i = 0; i < hr.getChildren().length; i++){
+    			child = hr.getChild(i);
+    			if(i == 0){ //Add module name to table
+    				symbolTable.insert(child.getVal(), child.getId(),true);
+    			}
+    			if( i == 1 && child.getId().equals("DeclarationList")){
+    				SymbolTable new_table = new SymbolTable(symbolTable);
+    				this.symbolTable.children.add(new_table) ;
+    	    		runSemanticCheck(child,symbolTable);
+    			}
+    			if(child.getId().equals("Function")){
+    				SymbolTable tabela = new SymbolTable(symbolTable);
+    				runSemanticCheck(child,tabela);
+    			}
+    		}
+       		break;
+    	case "DeclarationList":
+    		//symbolTable.insert("null", "Declaration",true);
+    		//runSemanticChecker(child,symbolTable)
+    		for(int i = 0; i < hr.getChildren().length; i++){
+    			child = hr.getChild(i);
+    			if(child.getId()=="Assign"){
+    				symbolTable.insert(child.getChild(0).getVal(), child.getChild(0).getId(), true);
+    			}
+    			else
+    			{
+    				symbolTable.insert(child.getVal(), child.getId(), false);
+    			}
+    			
+    		}
+    		break;
+    	case "Function":
+    		for(int i = 0; i < hr.getChildren().length; i++){
+    			child = hr.getChild(i);
+    			
+    			if(child.getId().equals("Return")){
+    				symbolTable.insert(child.getChildren()[1].getVal(), child.getChildren()[1].getId(), true);
+    				//insert tipo de retorno filho[0]
+    			}
+    		}
+    		
+    		
+    		
+    	}
+		return erros;
 
 	}
 
@@ -66,7 +109,7 @@ public class SemanticChecker {
 				}else{
 					lookupSymbol.setInitialized();
 				}
-			}else if(){
+			}else if(true){
 				//TODO rest of assign;
 			}
 		}

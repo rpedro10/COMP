@@ -1,4 +1,3 @@
-package first;
 
 import java.util.ArrayList;
 
@@ -9,7 +8,7 @@ class SymbolTable {
     int scope=0;
     
     Symbol insert(String name,String type) {
-		Symbol symbol = new Symbol(name,type,getScope());
+		Symbol symbol = new Symbol(name,type,true);
 		tbl.add(symbol);
 		return symbol;
 	}
@@ -31,7 +30,7 @@ class SymbolTable {
     void beginScope() {
 		scope++;
 	}
-	
+	/**
 	void endScope() {
 		for (int i = tbl.size() - 1; i >= 0; i--) {
 			Symbol symbol = tbl.get(i);
@@ -57,4 +56,5 @@ class SymbolTable {
 		}
 		return null;
 	}
+	*/
 }
