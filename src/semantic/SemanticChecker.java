@@ -17,23 +17,22 @@ public class SemanticChecker {
 	}
 
 	public ArrayList<Error> runSemanticCheck(HIRTree hr,SymbolTable symbolTable){
-		ArrayList<Error> erros = new  ArrayList<Error>() ;
+		ArrayList<Error> erros = new  ArrayList<Error>(); //em vez disto adicionar ao error_list
 		HIRTree child;
     	switch (hr.getId()){
     	case "Module":
     		for(int i = 0; i < hr.getChildren().length; i++){
     			child = hr.getChild(i);
     			if(i == 0){ //Add module name to table
-    				symbolTable.insert(child.getVal(), child.getId(),true);
-    			}
-    			if( i == 1 && child.getId().equals("DeclarationList")){
-    				SymbolTable new_table = new SymbolTable(symbolTable);
-    				this.symbolTable.children.add(new_table) ;
-    	    		runSemanticCheck(child,symbolTable);
-    			}
-    			if(child.getId().equals("Function")){
-    				SymbolTable tabela = new SymbolTable(symbolTable);
-    				runSemanticCheck(child,tabela);
+    				this.symbolTable.insert(child.getVal(), "name", true);
+    			}else if( i == 1 && child.getId().equals("DeclarationList")){
+    				SymbolTable new_table = new SymbolTable(this.symbolTable);
+    	    		runSemanticCheck(child,new_table); //talvez funcione assim, pedir opinião
+    	    		this.symbolTable.children.add(new_table) ;
+    			}else if(child.getId().equals("Function")){
+    				SymbolTable new_table = new SymbolTable(this.symbolTable);
+    				runSemanticCheck(child,new_table);
+    				this.symbolTable.children.add(new_table);
     			}
     		}
        		break;
@@ -55,20 +54,34 @@ public class SemanticChecker {
     	case "Function":
     		for(int i = 0; i < hr.getChildren().length; i++){
     			child = hr.getChild(i);
-    			
-    			if(child.getId().equals("Return")){
-    				symbolTable.insert(child.getChildren()[1].getVal(), child.getChildren()[1].getId(), true);
-    				//insert tipo de retorno filho[0]
+    			if(i=0){
+	    			if(child.getId().equals("Return")){
+	    				symbolTable.insert(child.getChild(1).getVal(), "name", true);
+	    				symbolTable.insert(child.getChild(0).getVal(), "return", false);
+	    			}else{
+	    				symbolTable.insert(child.getVal(), "name", true);
+	    			}
+    			}else if(child.getId().equals("Parameters"){
+    				for(int j=0; j < child.getChildren(); j++){
+    					if(child.getChild(j).getId().equals("Id"))
+    						symbolTable.insert(child.getChild(j).getVal(), "parameter int", true);
+    					else if(child.getChild(j).getId().equals("Array"))
+    						symbolTable.insert(child.getChild(j).getVal(), "parameter array", true);
+    				}
+    			}else if(child.getId().equals("Assign")){
+
+    			}else if(child.getId().equals("If")){
+    				//Criar nova tabela e preencher e depois adicionar a tabela function
+    			}else if(child.getId().equals("While")){
+    				//Criar nova tabela e preencher e depois adicionar a tabela function
     			}
     		}
-    		
-    		
-    		
+    		break;
     	}
-		return erros;
-
+		return erros; //em vez de ^^^
 	}
 
+	//NOT USED
 	public void checkModule(HIRTree tree){
 		for(int i=0; i<tree.getChildren().length; i++){
 			if(i==0)
@@ -81,6 +94,7 @@ public class SemanticChecker {
 		}
 	}
 
+	//NOT USED
 	public void addDeclarationList(HIRTree tree){
 		for(int i=0 ; i<tree.getChildren().length ; i++){
 			if(tree.getChild(i).getId() == "assign"){
@@ -96,6 +110,7 @@ public class SemanticChecker {
 		}
 	}
 
+	//NOT USED
 	public void addFunction(HIRTree tree){
 		//TODO -> criar tabela, e por nessa tabela o nome, retorno e parametros
 	}
