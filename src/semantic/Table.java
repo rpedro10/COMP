@@ -2,20 +2,22 @@ package semantic;
 import java.util.ArrayList;
 
 
-class SymbolTable {
-	SymbolTable parent;
-	ArrayList<SymbolTable> children;
+public class Table {
+	Table parent;
+	ArrayList<Table> children;
     ArrayList<Symbol> tbl;
     
-    public SymbolTable(HIRTree hr){
+    public Table(HIRTree hr){
     	//this.buildTable(hr);
     }
     
-    public SymbolTable(SymbolTable parent){
+    public Table(Table parent){
     	this.parent = parent;
     }
     
-    public SymbolTable(){
+    public Table(){
+    	children = new ArrayList<Table>();
+    	tbl = new ArrayList<Symbol>();
     }
     
 /**
@@ -45,12 +47,12 @@ class SymbolTable {
     }
     
     */
-    void insert(String name,String type, boolean initialized) {
+    public void insert(String name,String type, boolean initialized) {
 		Symbol symbol = new Symbol(name,type,initialized);
 		tbl.add(symbol);
 	}
     
-    Symbol lookup(String name) {
+    public Symbol lookup(String name) {
 		Symbol symbol = null;
 		for (int i = tbl.size() - 1; i >= 0; i--) {
 			symbol = tbl.get(i);

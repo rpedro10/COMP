@@ -21,7 +21,7 @@ public class Symbol {
 		return type;
 	}
 
-	public boolean getInitialized() {
+	public boolean isInitialized() {
 		return initialized;
 	}
 	
