@@ -87,7 +87,7 @@ void DeclarationList(): { }
 }
 void Declaration() : { Token assign;  }
 {
-	(ScalarElement())( assign=<ASSIGN> { jjtThis.val = assign.image; } DeclarationRHS() )? <PVIRG>
+	Lhs()#Array(>1)( assign=<ASSIGN> { jjtThis.val = assign.image; } DeclarationRHS() )? <PVIRG>
 }
 
 void DeclarationRHS() : { Token id = new Token(); id.image = "undefined"; }
@@ -139,7 +139,7 @@ void Stmtlst() #void : { }
 }
 void Stmt()#void: { }
 {
-	While() | If() | (LOOKAHEAD(Call()) Call() < PVIRG > | Assign())   //ID
+	While() | If()(Else())? | (LOOKAHEAD(Call()) Call() < PVIRG > | Assign())   //ID
 }
 void Call(): {}
 {
@@ -160,7 +160,7 @@ void Rhs() : { Token Op  = new Token(); Op.image = "Undefined";}
 
 void ArrayAccess():{ Token ind = new Token(); ind.image = "undefined"; } // -- ID
 {
-	"[" (ind=< ID >| ind=< INTEGER >)? "]" { jjtThis.val = ind.image=="undefined"?"[]":"["+ind.image+"]"; } //Optional Index. Now accepts statement b[] = 2; 
+	"[" (ind=< ID >| ind=< INTEGER >)? "]" { jjtThis.val = ind.image=="undefined"?"null":ind.image; } //Optional Index. Now accepts statement b[] = 2; 
 }
 void ScalarAccess()#void:{} // -- ID
 {
@@ -186,7 +186,11 @@ void While(): { }
 }
 void If(): {}
 {
-	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA> ( <ELSE> <LCHAVETA> Stmtlst()#Else <RCHAVETA> )?
+	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA>
+}
+void Else(): { }
+{
+	<ELSE> <LCHAVETA> Stmtlst() <RCHAVETA>
 }
 void ArgumentList():{}
 {
