@@ -8,10 +8,11 @@ public class Table {
     ArrayList<Symbol> tbl;
     
     public Table(HIRTree hr){
-    	//this.buildTable(hr);
+    	this();
     }
     
     public Table(Table parent){
+    	this();
     	this.parent = parent;
     }
     
@@ -52,15 +53,22 @@ public class Table {
 		tbl.add(symbol);
 	}
     
+    public void insertChildTable(Table ct){
+    	children.add(ct);
+    }
+    
     public Symbol lookup(String name) {
-		Symbol symbol = null;
-		for (int i = tbl.size() - 1; i >= 0; i--) {
-			symbol = tbl.get(i);
-			if (symbol.getName().equals(name)) {
-				return symbol;
+		if(tbl.size() > 0){
+			for(Symbol s : tbl){
+				if(s.getName() == name)
+					return s;
 			}
 		}
-		return null;
+		if(parent != null)
+			return parent.lookup(name);
+		else
+			return null;
+		
 	}
     
    
