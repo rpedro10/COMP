@@ -164,6 +164,25 @@ public class SemanticChecker {
 			}
 		}
 	}
+	
+	public void initModuleChildTables(HIRTree moduleNode, Table moduleTable){
+		HIRTree[] children = moduleNode.getChildren();
+		HIRTree currFunct;
+		if(children.length > 2){ 
+			Table funcTable;
+			for(int i = 2; i < children.length; i++){
+				currFunct = children[i].getChild(i);
+				funcTable = new Table(moduleTable);
+				if(currFunct.getChild(0).getId().equals("Return")){
+					funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", true);
+					funcTable.insert(currFunct.getChild(0).getChild(1).getVal(), "function name", true);
+				}else{
+					funcTable.insert(currFunct.getChild(0).getVal(), "function name", true);
+				}
+				moduleTable.insertChildTable(funcTable);
+			}
+		}
+	}
 
 	public void checkCall(HIRTree tree, Table symbolTable){
 		//lookup function name and verify arguments, see if used vars are initialized
