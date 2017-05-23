@@ -168,16 +168,26 @@ public class SemanticChecker {
 	public void initModuleChildTables(HIRTree moduleNode, Table moduleTable){
 		HIRTree[] children = moduleNode.getChildren();
 		HIRTree currFunct;
+		HIRTree parameters;
 		if(children.length > 2){ 
 			Table funcTable;
 			for(int i = 2; i < children.length; i++){
 				currFunct = children[i].getChild(i);
 				funcTable = new Table(moduleTable);
 				if(currFunct.getChild(0).getId().equals("Return")){
-					funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", true);
+					funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", false);
 					funcTable.insert(currFunct.getChild(0).getChild(1).getVal(), "function name", true);
 				}else{
 					funcTable.insert(currFunct.getChild(0).getVal(), "function name", true);
+				}
+				parameters = currFunct.getChild(1);
+				for(int j = 0; i < parameters.getChildren().length; i++){
+					if(parameters.getChild(j).getId().equals("Array")){
+						funcTable.insert(parameters.getChild(j).getVal(), "parameter array", true);
+					}
+					else if(parameters.getChild(j).getId().equals("Id")){
+						funcTable.insert(parameters.getChild(j).getVal(), "parameter int", true);
+					}
 				}
 				moduleTable.insertChildTable(funcTable);
 			}
