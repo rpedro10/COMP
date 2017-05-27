@@ -23,8 +23,8 @@ public class Parser
 			semantic.HIRTree hir = new semantic.HIRTree();
 			semantic.SemanticChecker smc=  new semantic.SemanticChecker();
 	  		root.dump("", hir);
-	  		//smc.runSemanticCheck(hir, new semantic.Table()); //está a dar erro
 	  		hir.dump("");
+	  		smc.runSemanticCheck(hir, smc.getTable());
 	  		
 
 	  	}catch(IOException e){

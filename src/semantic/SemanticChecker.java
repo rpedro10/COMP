@@ -5,34 +5,48 @@ public class SemanticChecker {
 	
 	private Table symbolTable;
 	private ArrayList<Error> error_list;
-	//TODO MODULE WARNINGS
-	private HIRTree tree;
 	private int errorCount;
 
-	public SemanticChecker(){ //(/*HIRTree tree*/) {
+	public SemanticChecker(){
 		symbolTable = new Table();
 		errorCount = 0;
 		error_list = new ArrayList<Error>();
-	//	this.tree = tree;
 	}
 
-	public ArrayList<Error> runSemanticCheck(HIRTree hr,Table symbolTable){
-		ArrayList<Error> erros = new  ArrayList<Error>(); //em vez disto adicionar ao error_list
+	public void runSemanticCheck(HIRTree hr,Table symbolTable){
 		HIRTree child;
     	switch (hr.getId()){
     	case "Module":
+    		initModuleChildTables(hr, symbolTable);
     		for(int i = 0; i < hr.getChildren().length; i++){
     			child = hr.getChild(i);
     			if(i == 0){ //Add module name to table
     				this.symbolTable.insert(child.getVal(), "module name", true);
-    			}else if( i == 1 && child.getId().equals("DeclarationList")){
-    				Table new_table = new Table(this.symbolTable);
-    	    		runSemanticCheck(child,new_table); //talvez funcione assim, pedir opinião
-    	    		this.symbolTable.children.add(new_table) ;
+    			}else if( i == 1 && child.getVal() == null){
+    				
+    				{/*Alternativa ao code anterior, guardar decls na symbol list do module. Mais fácil no lookup*/}
+    				
+    				for(int j = 0; j < child.getChildren().length; j++){
+    					if(child.getChild(j).getId().equals("assign"))
+    						addAssign(child.getChild(j), symbolTable);
+    					else
+    					{
+    						if(symbolTable.lookup(child.getChild(j).getVal())==null)
+    						{
+    							if(child.getChild(j).getId().equals("Id"))
+    								symbolTable.insert(child.getChild(j).getVal(), "int", false); //Push int
+    							else
+    								symbolTable.insert(child.getChild(j).getChild(0).getVal(), "array", false); //Push Array
+    						}
+    					}
+    				}
+    				/*Table new_table = new Table(this.symbolTable);
+    				this.symbolTable.children.add(new_table);
+    	    		runSemanticCheck(child,new_table); //talvez funcione assim, pedir opinião*/
     			}else if(child.getId().equals("Function")){
     				Table new_table = new Table(this.symbolTable);
-    				runSemanticCheck(child,new_table);
     				this.symbolTable.children.add(new_table);
+    				runSemanticCheck(child,new_table);
     			}
     		}
        		break;
@@ -108,7 +122,7 @@ public class SemanticChecker {
 	    	}
     		break;
     	}
-		return erros; //em vez de ^^^
+		//return erros; //em vez de ^^^
 	}
 
 	public void addAssign(HIRTree tree, Table symbolTable){
@@ -172,7 +186,7 @@ public class SemanticChecker {
 		if(children.length > 2){ 
 			Table funcTable;
 			for(int i = 2; i < children.length; i++){
-				currFunct = children[i].getChild(i);
+				currFunct = children[i];
 				funcTable = new Table(moduleTable);
 				if(currFunct.getChild(0).getId().equals("Return")){
 					funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", false);
@@ -180,13 +194,17 @@ public class SemanticChecker {
 				}else{
 					funcTable.insert(currFunct.getChild(0).getVal(), "function name", true);
 				}
-				parameters = currFunct.getChild(1);
-				for(int j = 0; i < parameters.getChildren().length; i++){
-					if(parameters.getChild(j).getId().equals("Array")){
-						funcTable.insert(parameters.getChild(j).getVal(), "parameter array", true);
-					}
-					else if(parameters.getChild(j).getId().equals("Id")){
-						funcTable.insert(parameters.getChild(j).getVal(), "parameter int", true);
+				if(currFunct.getChildren().length > 1){
+					if(currFunct.getChild(1).getId().equals("Parameters")){
+						parameters = currFunct.getChild(1);
+						for(int j = 0; j < parameters.getChildren().length; j++){
+							if(parameters.getChild(j).getId().equals("Array")){
+								funcTable.insert(parameters.getChild(j).getVal(), "parameter array", true);
+							}
+							else if(parameters.getChild(j).getId().equals("Id")){
+								funcTable.insert(parameters.getChild(j).getVal(), "parameter int", true);
+							}
+						}
 					}
 				}
 				moduleTable.insertChildTable(funcTable);
@@ -196,6 +214,10 @@ public class SemanticChecker {
 
 	public void checkCall(HIRTree tree, Table symbolTable){
 		//lookup function name and verify arguments, see if used vars are initialized
+	}
+	
+	public Table getTable(){
+		return this.symbolTable;
 	}
 
 
