@@ -1,0 +1,14 @@
+module EmptyModule{
+
+	b[] = 3;
+	a;
+	
+	function main(b){
+		a=3;
+	}
+	
+	function add(){
+	
+	}
+
+}

@@ -1,0 +1,23 @@
+module Test{
+	
+	a=2;
+	c;
+	function a=main(N, B[]) {
+		a=3; //Comment
+		i=0;
+		b = [20];
+		b[] = 10;
+		if(N > 30){
+			N = 30;
+		}else{
+			N = 15;
+		}
+		while(i < b.size){
+			a = N * b[i];
+			i = i + 1;
+		}
+		a = io.test(8,10);
+	}
+	
+	
+}
