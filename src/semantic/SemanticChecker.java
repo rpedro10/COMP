@@ -27,7 +27,7 @@ public class SemanticChecker {
     				{/*Alternativa ao code anterior, guardar decls na symbol list do module. Mais fácil no lookup*/}
     				
     				for(int j = 0; j < child.getChildren().length; j++){
-    					if(child.getChild(j).getId().equals("assign"))
+    					if(child.getChild(j).getId().equals("Assign"))
     						addAssign(child.getChild(j), symbolTable);
     					else
     					{
@@ -128,17 +128,13 @@ public class SemanticChecker {
 	public void addAssign(HIRTree tree, Table symbolTable){
 		for(int i=0; i<tree.getChildren().length ; i++){
 			if(i==0){
-				 Symbol lookup = symbolTable.lookup(tree.getChild(i).getVal());
+				Symbol lookup = symbolTable.lookup(tree.getChild(i).getVal());
 				if( lookup == null){
-					if(tree.getChild(i).getId().equals("Array")){
-						if(tree.getChild(i+1).getId().equals("ArrayAccess")){
-							//erro, array has to be defined before;
-							System.out.println("Array error, not defined");
-						}else{
-							symbolTable.insert(tree.getChild(i).getVal(), "array", false);
-						}
-					}
+					if(tree.getChild(i + 1).getId().equals("ArraySize")){
+						symbolTable.insert(tree.getChild(i).getVal(), "array", true);
+					}else if(tree.getChild(i + 1).getId().equals("Integer")){
 					symbolTable.insert(tree.getChild(i).getVal(), "int", true);
+					}
 				}else{
 					//podes mudar o tamanho do array depois de criar primeira vez?
 					lookup.setInitialized();

@@ -17,6 +17,8 @@ public class Table {
     	tbl = new ArrayList<Symbol>();
     }
     
+    public ArrayList<Symbol> getVariables(){return tbl;}
+    
     public void insert(String name,String type, boolean initialized) {
 		Symbol symbol = new Symbol(name,type,initialized);
 		tbl.add(symbol);
