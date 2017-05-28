@@ -25,7 +25,8 @@ public class Parser
 	  		root.dump("", hir);
 	  		hir.dump("");
 	  		smc.runSemanticCheck(hir, smc.getTable());
-	  		
+	  		codeGenerator.CodeGenerator cg = new codeGenerator.CodeGenerator(hir, smc.getTable());
+	  		cg.generateCode();
 
 	  	}catch(IOException e){
 	  		e.printStackTrace();
