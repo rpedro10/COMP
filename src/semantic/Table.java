@@ -62,7 +62,7 @@ public class Table {
     
    public Table lookupFunction(String name){
 	   if(parent!=null){
-		   parent.lookupFunction(name);
+		   return parent.lookupFunction(name);
 	   }
 	   else{
 		   for(Table t : children){
