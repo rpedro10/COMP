@@ -40,50 +40,16 @@ public class SemanticChecker {
     						}
     					}
     				}
-    				/*Table new_table = new Table(this.symbolTable);
-    				this.symbolTable.children.add(new_table);
-    	    		runSemanticCheck(child,new_table); //talvez funcione assim, pedir opinião*/
     			}else if(child.getId().equals("Function")){
-    				Table new_table = new Table(this.symbolTable);
-    				this.symbolTable.children.add(new_table);
-    				runSemanticCheck(child,new_table);
+    				runSemanticCheck(child, symbolTable.getChild(i-2));
     			}
     		}
        		break;
-    	case "DeclarationList":
-    		for(int i=0 ; i<hr.getChildren().length ; i++){
-				if(hr.getChild(i).getId() == "assign"){
-					addAssign(hr.getChild(i),symbolTable);
-				}else{
-					 Symbol lookup = symbolTable.lookup(hr.getChild(i).getVal());
-					if( lookup == null){
-						symbolTable.insert(hr.getChild(i).getVal(), "int", false);
-					}else{
-						//retornar erro "var;" again
-						System.out.println("DeclarationList error, redeclaration");
-					}
-				}
-			}
-    		break;
     	case "Function":
-    		for(int i = 0; i < hr.getChildren().length; i++){
+    		for(int i = 1; i < hr.getChildren().length; i++){
     			child = hr.getChild(i);
-    			if(i==0){
-	    			if(child.getId().equals("Return")){
-	    				symbolTable.insert(child.getChild(1).getVal(), "function name", true);
-	    				symbolTable.insert(child.getChild(0).getVal(), "return", false);
-	    			}else{
-	    				symbolTable.insert(child.getVal(), "name", true);
-	    			}
-    			}else if(child.getId().equals("Parameters")){
-    				for(int j=0; j < child.getChildren().length ; j++){
-    					if(child.getChild(j).getId().equals("Id"))
-    						symbolTable.insert(child.getChild(j).getVal(), "parameter int", true);
-    					else if(child.getChild(j).getId().equals("Array"))
-    						symbolTable.insert(child.getChild(j).getVal(), "parameter array", true);
-    				}
-    			}else if(child.getId().equals("Assign")){
-
+    			if(child.getId().equals("Assign")){
+    				addAssign(child, symbolTable);
     			}else if(child.getId().equals("If")){
     				//Criar nova tabela e preencher e depois adicionar a tabela function
     			}else if(child.getId().equals("While")){
@@ -111,7 +77,7 @@ public class SemanticChecker {
     		for(int i=0; i < hr.getChildren().length; i++){
     			child=hr.getChild(i);
 	    		if(child.getId().equals("Assign")){
-
+	    			
 	    		}else if(child.getId().equals("If")){
 	    			//Criar nova tabela e preencher e depois adicionar a tabela function
 	    		}else if(child.getId().equals("While")){
@@ -185,20 +151,20 @@ public class SemanticChecker {
 				currFunct = children[i];
 				funcTable = new Table(moduleTable);
 				if(currFunct.getChild(0).getId().equals("Return")){
-					funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", false);
 					funcTable.insert(currFunct.getChild(0).getChild(1).getVal(), "function name", true);
+					funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", false);
 				}else{
 					funcTable.insert(currFunct.getChild(0).getVal(), "function name", true);
 				}
 				if(currFunct.getChildren().length > 1){
 					if(currFunct.getChild(1).getId().equals("Parameters")){
 						parameters = currFunct.getChild(1);
-						for(int j = 0; j < parameters.getChildren().length; j++){
-							if(parameters.getChild(j).getId().equals("Array")){
-								funcTable.insert(parameters.getChild(j).getVal(), "parameter array", true);
+						for(HIRTree param : parameters.getChildren()){
+							if(param.getId().equals("Array")){
+								funcTable.insert(param.getVal(), "parameter array", true);
 							}
-							else if(parameters.getChild(j).getId().equals("Id")){
-								funcTable.insert(parameters.getChild(j).getVal(), "parameter int", true);
+							else if(param.getId().equals("Id")){
+								funcTable.insert(param.getVal(), "parameter int", true);
 							}
 						}
 					}
@@ -215,39 +181,4 @@ public class SemanticChecker {
 	public Table getTable(){
 		return this.symbolTable;
 	}
-
-
-	/*NOT USED
-	public void checkModule(HIRTree tree){
-		for(int i=0; i<tree.getChildren().length; i++){
-			if(i==0)
-				symbolTable.insert(tree.getChild(i).getVal(), "name", false);
-			else if(tree.getChild(i).getId() == "DeclarationList"){
-				addDeclarationList(tree.getChild(i));
-			}else if(tree.getChild(i).getId() == "Function"){
-				addFunction(tree.getChild(i));
-			}
-		}
-	}*/
-
-	/*NOT USED
-	public void addDeclarationList(HIRTree tree){
-		for(int i=0 ; i<tree.getChildren().length ; i++){
-			if(tree.getChild(i).getId() == "assign"){
-				addAssign(tree.getChild(i));
-			}else{
-				 lookup = symbolTable.lookup(tree.getChild(i).getVal());
-				if( lookup == null){
-					symbolTable.insert(tree.getChild(i).getVal(), "int", false);
-				}else{
-					//retornar erro "var;" again, afinal ja retorna
-				}
-			}
-		}
-	}*/
-
-	/*NOT USED
-	public void addFunction(HIRTree tree){
-		//TODO -> criar tabela, e por nessa tabela o nome, retorno e parametros
-	}*/
 }

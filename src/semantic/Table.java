@@ -17,6 +17,8 @@ public class Table {
     	tbl = new ArrayList<Symbol>();
     }
     
+    public Table getChild(int index){return children.get(index);}
+    
     public ArrayList<Symbol> getVariables(){return tbl;}
     
     public void insert(String name,String type, boolean initialized) {
@@ -43,20 +45,45 @@ public class Table {
 			return parent.lookup(name);
 		else
 			return null;
-		
+	}
+    
+    public Symbol lookup(String name, String type) { //Procura pelo simbolo com nome e tipo especificado
+		if(tbl.size() > 0){
+			for(Symbol s : tbl){
+				if(s.getName() == name && s.getType() == type)
+					return s;
+			}
+		}
+		if(parent != null)
+			return parent.lookup(name);
+		else
+			return null;
 	}
     
    public Table lookupFunction(String name){
-	   int nodeNum;
-	   while(parent != null){
+	   if(parent!=null){
 		   parent.lookupFunction(name);
 	   }
-	   for(Table t : parent.children){
-		  nodeNum = t.getSymbol(0).getType().equals("function name") ? 0 : 1;
-		  if(t.getSymbol(nodeNum).getName().equals(name))
-			  return t;
+	   else{
+		   for(Table t : parent.children){
+			  if(t.getSymbol(0).getName().equals(name))
+				  return t;
+		   }
 	   }
 	   return null;
+   }
+   
+   public int checkForReturnPosition(){ //Obter posição em termos de stack da variavel de retorno
+	   Symbol ret = tbl.get(1);
+	   if(ret.getType().equals("return")){
+		   for(int i = 2; i < tbl.size(); i++){
+			   if(ret.getName().equals(tbl.get(i).getName()))
+				   return i;
+		   }
+	   	   return -1;
+	   	}
+	   else
+		   return -1;
    }
 	
 }
