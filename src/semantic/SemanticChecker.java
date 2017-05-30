@@ -50,13 +50,18 @@ public class SemanticChecker {
 							addAssign(child.getChild(k),this.symbolTable);
 						}else{
 							//System.out.println("Starting to look for " + child.getChild(k).getVal());
-							Symbol lookup = this.symbolTable.lookup(child.getChild(k).getVal());
+							HIRTree subChild = child.getChild(k);
+							Symbol lookup;
+							if(subChild.getId().equals("Array"))
+								lookup = this.symbolTable.lookup(subChild.getChild(0).getVal());
+							else
+								lookup = this.symbolTable.lookup(subChild.getVal());
 							if( lookup == null){
 								//System.out.println("null lookup on " + child.getChild(k).getVal());
 								if(child.getChild(k).getId().equals("Id")){
 									this.symbolTable.insert(child.getChild(k).getVal(), "int", false);
 								}else if(child.getChild(k).getId().equals("Array")){
-									this.symbolTable.insert(child.getChild(k).getVal(), "array", false);
+									this.symbolTable.insert(subChild.getChild(0).getVal(), "array", false);
 								}
 							}else{
 								//retornar erro "var;" again
