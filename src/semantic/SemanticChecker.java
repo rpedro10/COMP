@@ -17,31 +17,59 @@ public class SemanticChecker {
 		HIRTree child;
     	switch (hr.getId()){
     	case "Module":
-    		initModuleChildTables(hr, symbolTable);
+    		boolean firstTable = true;
     		for(int i = 0; i < hr.getChildren().length; i++){
     			child = hr.getChild(i);
     			if(i == 0){ //Add module name to table
     				this.symbolTable.insert(child.getVal(), "module name", true);
-    			}else if( i == 1 && child.getVal() == null){
+    			}else if( i == 1 && child.getId().equals("DeclarationList")){
+    				//{/*Alternativa ao code anterior, guardar decls na symbol list do module. Mais fácil no lookup*/}
     				
-    				{/*Alternativa ao code anterior, guardar decls na symbol list do module. Mais fácil no lookup*/}
-    				
-    				for(int j = 0; j < child.getChildren().length; j++){
+    				/*for(int j = 0; j < child.getChildren().length; j++){
     					if(child.getChild(j).getId().equals("Assign"))
-    						addAssign(child.getChild(j), symbolTable);
+    						addAssign(child.getChild(j), this.symbolTable);
     					else
     					{
-    						if(symbolTable.lookup(child.getChild(j).getVal())==null)
+    						if(this.symbolTable.lookup(child.getChild(j).getVal())==null)
     						{
+    							System.out.println("null lookup on val: " + child.getChild(j).getVal());
     							if(child.getChild(j).getId().equals("Id"))
-    								symbolTable.insert(child.getChild(j).getVal(), "int", false); //Push int
+    								this.symbolTable.insert(child.getChild(j).getVal(), "int", false); //Push int
     							else
-    								symbolTable.insert(child.getChild(j).getChild(0).getVal(), "array", false); //Push Array
+    								this.symbolTable.insert(child.getChild(j).getChild(0).getVal(), "array", false); //Push Array
+    						}else{
+    							//supostamente error var; again
+    							System.out.println("Redeclaration");
     						}
     					}
-    				}
+    				}*/
+
+    				for(int k=0 ; k<child.getChildren().length ; k++){
+						if(child.getChild(k).getId().equals("Assign")){
+							System.out.println("Assign...");
+							addAssign(child.getChild(k),this.symbolTable);
+						}else{
+							System.out.println("Starting to look for " + child.getChild(k).getVal());
+							Symbol lookup = this.symbolTable.lookup(child.getChild(k).getVal());
+							if( lookup == null){
+								System.out.println("null lookup on " + child.getChild(k).getVal());
+								if(child.getChild(k).getId().equals("Id")){
+									this.symbolTable.insert(child.getChild(k).getVal(), "int", false);
+								}else if(child.getChild(k).getId().equals("Array")){
+									this.symbolTable.insert(child.getChild(k).getVal(), "array", false);
+								}
+							}else{
+								//retornar erro "var;" again
+								System.out.println("DeclarationList error, redeclaration " + child.getChild(k).getVal());
+							}
+						}
+					}
     			}else if(child.getId().equals("Function")){
-    				runSemanticCheck(child, symbolTable.getChild(i-2));
+    				if(firstTable){
+    					initModuleChildTables(hr, this.symbolTable);
+    					firstTable=false;
+    				}
+    				runSemanticCheck(child, this.symbolTable.getChild(i-2));
     			}
     		}
        		break;
@@ -92,18 +120,30 @@ public class SemanticChecker {
 	}
 
 	public void addAssign(HIRTree tree, Table symbolTable){
+		Symbol lookup;
 		for(int i=0; i<tree.getChildren().length ; i++){
 			if(i==0){
-				Symbol lookup = symbolTable.lookup(tree.getChild(i).getVal());
-				if( lookup == null){
-					if(tree.getChild(i + 1).getId().equals("ArraySize")){
-						symbolTable.insert(tree.getChild(i).getVal(), "array", true);
-					}else if(tree.getChild(i + 1).getId().equals("Integer")){
-					symbolTable.insert(tree.getChild(i).getVal(), "int", true);
+				if(tree.getChild(i).getId().equals("Id")){
+					lookup = symbolTable.lookup(tree.getChild(i).getVal());
+					System.out.println("null assign lookup on " + tree.getChild(i).getVal());
+					if( lookup == null){
+						if(tree.getChild(i + 1).getId().equals("ArraySize")){
+							if(Integer.parseInt(tree.getChild(i+1).getChild(0).getVal())>0){
+								symbolTable.insert(tree.getChild(i).getVal(), "array", false);
+								System.out.println("Define " + tree.getChild(i).getVal());
+							}else
+								System.out.println("ArraySize must be greater than 0");
+						}else if(tree.getChild(i + 1).getId().equals("Integer")){
+							symbolTable.insert(tree.getChild(i).getVal(), "int", true);
+							System.out.println("Initialize " + tree.getChild(i).getVal());
+						}
+					}else{
+						if(tree.getChild(i + 1).getId().equals("ArraySize")){
+							if(Integer.parseInt(tree.getChild(i+1).getChild(0).getVal())<=0)
+								System.out.println("ArraySize must be greater than 0");
+						}else
+							lookup.setInitialized();
 					}
-				}else{
-					//podes mudar o tamanho do array depois de criar primeira vez?
-					lookup.setInitialized();
 				}
 			}else if(tree.getChild(i).getId().equals("Arith")){
 				addArithm(tree.getChild(i), symbolTable);
@@ -112,7 +152,7 @@ public class SemanticChecker {
 				checkCall(tree.getChild(i), symbolTable);
 			}else if(tree.getChild(i).getId().equals("Id")){
 				//lookup se if var is initialized
-				Symbol lookup = symbolTable.lookup(tree.getChild(i).getVal());
+				lookup = symbolTable.lookup(tree.getChild(i).getVal());
 				if(lookup == null){
 					//erro not defined;
 				}else if(!lookup.isInitialized()){
@@ -170,6 +210,7 @@ public class SemanticChecker {
 					}
 				}
 				moduleTable.insertChildTable(funcTable);
+				System.out.println("Table inserted");
 			}
 		}
 	}

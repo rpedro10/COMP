@@ -23,6 +23,7 @@ public class Table {
     
     public void insert(String name,String type, boolean initialized) {
 		Symbol symbol = new Symbol(name,type,initialized);
+        System.out.println("Adding symbol " + symbol.getName());
 		tbl.add(symbol);
 	}
     
@@ -37,7 +38,9 @@ public class Table {
     public Symbol lookup(String name) {
 		if(tbl.size() > 0){
 			for(Symbol s : tbl){
-				if(s.getName() == name)
+                System.out.println(s.getName() +" == "+ name);
+				if(s.getName().equals(name))
+                    System.out.println("returning s...");
 					return s;
 			}
 		}
@@ -50,7 +53,7 @@ public class Table {
     public Symbol lookup(String name, String type) { //Procura pelo simbolo com nome e tipo especificado
 		if(tbl.size() > 0){
 			for(Symbol s : tbl){
-				if(s.getName() == name && s.getType() == type)
+				if(s.getName().equals(name) && s.getType().equals(type))
 					return s;
 			}
 		}
