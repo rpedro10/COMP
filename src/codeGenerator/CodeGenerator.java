@@ -28,12 +28,34 @@ public class CodeGenerator {
 				setModuleHeader(st.getVariables().get(0).getName(), jvm);
 				if(st.getVariables().size() > 1) /*Se tiver globais definir agora*/
 					setGlobals(st.getVariables(), ast.getChild(1), jvm); 
+				jvm.append("\n");
 				if(ast.getChildren().length > 2){ //Verificar se existem funções
 					for(int i = 2; i < ast.getChildren().length; i++){
-						
+						translator(jvm, ast.getChild(i), st.getChild(i-2));
 					}
 				}
+				jvm.append(this.arrayIniters);
 				break;
+			case "Function":
+				/*Obter posições das variaveis para alocar a stack e saber onde fica o retorno*/
+				boolean isVoid = isVoid(st);
+				int paramOffset = getParamStart(st, isVoid), localOffset, retIndex = 0;
+				localOffset = paramOffset == 0 ? 0 : getLocalStart(st, paramOffset) - paramOffset;
+				if(!isVoid)
+					retIndex = getReturnVarIndex(st, paramOffset);
+				/*DEBUG*/
+				System.out.println("");
+				for(Symbol s : st.getVariables()){
+					System.out.println(s.getType() + " : " + s.getName());
+				}
+				System.out.println("");
+				/*Inicializar nome de função e stack*/
+				setFunctionHeader(jvm, st);
+				/*Colocar valores de retorno*/
+				if(isVoid)
+					jvm.append(" return\n.end method\n");
+				else
+					jvm.append(" iload "+retIndex+"\n ireturn\n.end method\n");
 		}
 	}
 	
@@ -64,7 +86,7 @@ public class CodeGenerator {
 				}
 			}
 		}
-		jvm.append(gvars + arrayIniters);
+		jvm.append(gvars);
 	}
 	
 	/*Create array init functions*/
@@ -78,5 +100,53 @@ public class CodeGenerator {
 				" putstatic fields1/" + var + " [I\n"+
 				" return\n"+
 				".end method\n";
+	}
+	
+	/*Inicializar funnção*/
+	public void setFunctionHeader(StringBuilder jvm, Table ast){
+		jvm.append(
+				".method public static\n"+ast.getSymbol(0).getName()+"([Ljava/lang/String;)V\n"
+				);
+	}
+	
+	public boolean isVoid(Table st){
+		if(st.getSymbol(1).getType().equals("return"))
+			return false;
+		else
+			return true;
+	}
+	
+	public int getParamStart(Table st, boolean isVoid){
+		if(!isVoid){
+			if(st.getSymbol(2).getType().split(" ")[0].equals("parameter"))
+				return 2;
+			else
+				return 0;
+		}
+		else if(st.getSymbol(1).getType().split(" ")[0].equals("parameter")){
+				return 1;
+		}
+		else
+			return 0;
+	}
+	
+	public int getLocalStart(Table st, int paramStart){
+		int i = paramStart;
+		while(i < st.getVariables().size() && !st.getSymbol(i).getType().equals("int") && !st.getSymbol(i).getType().equals("array")){
+			i++;
+		}
+		if( i == st.getVariables().size())
+			return 0;
+		else
+			return i;
+	}
+	
+	public int getReturnVarIndex(Table st, int localStart){
+		String ret = st.getSymbol(1).getName();
+		int i = localStart;
+		while(st.getSymbol(i).getName().equals(ret)){
+			i++;
+		}
+		return i;
 	}
 }
