@@ -46,13 +46,13 @@ public class SemanticChecker {
 
     				for(int k=0 ; k<child.getChildren().length ; k++){
 						if(child.getChild(k).getId().equals("Assign")){
-							System.out.println("Assign...");
+							//System.out.println("Assign...");
 							addAssign(child.getChild(k),this.symbolTable);
 						}else{
-							System.out.println("Starting to look for " + child.getChild(k).getVal());
+							//System.out.println("Starting to look for " + child.getChild(k).getVal());
 							Symbol lookup = this.symbolTable.lookup(child.getChild(k).getVal());
 							if( lookup == null){
-								System.out.println("null lookup on " + child.getChild(k).getVal());
+								//System.out.println("null lookup on " + child.getChild(k).getVal());
 								if(child.getChild(k).getId().equals("Id")){
 									this.symbolTable.insert(child.getChild(k).getVal(), "int", false);
 								}else if(child.getChild(k).getId().equals("Array")){
@@ -125,15 +125,19 @@ public class SemanticChecker {
 			if(i==0){
 				if(tree.getChild(i).getId().equals("Id")){
 					lookup = symbolTable.lookup(tree.getChild(i).getVal());
-					System.out.println("null assign lookup on " + tree.getChild(i).getVal());
+					//System.out.println("null assign lookup on " + tree.getChild(i).getVal());
 					if( lookup == null){
 						if(tree.getChild(i + 1).getId().equals("ArraySize")){
 							if(Integer.parseInt(tree.getChild(i+1).getChild(0).getVal())>0){
 								symbolTable.insert(tree.getChild(i).getVal(), "array", false);
 								System.out.println("Define " + tree.getChild(i).getVal());
-							}else
+							}else{
 								System.out.println("ArraySize must be greater than 0");
+							}
 						}else if(tree.getChild(i + 1).getId().equals("Integer")){
+							symbolTable.insert(tree.getChild(i).getVal(), "int", true);
+							System.out.println("Initialize " + tree.getChild(i).getVal());
+						}else if(tree.getChild(i + 1).getId().equals("Id")){
 							symbolTable.insert(tree.getChild(i).getVal(), "int", true);
 							System.out.println("Initialize " + tree.getChild(i).getVal());
 						}
@@ -141,8 +145,9 @@ public class SemanticChecker {
 						if(tree.getChild(i + 1).getId().equals("ArraySize")){
 							if(Integer.parseInt(tree.getChild(i+1).getChild(0).getVal())<=0)
 								System.out.println("ArraySize must be greater than 0");
-						}else
+						}else{
 							lookup.setInitialized();
+						}
 					}
 				}
 			}else if(tree.getChild(i).getId().equals("Arith")){
@@ -153,10 +158,12 @@ public class SemanticChecker {
 			}else if(tree.getChild(i).getId().equals("Id")){
 				//lookup se if var is initialized
 				lookup = symbolTable.lookup(tree.getChild(i).getVal());
+				//System.out.println(lookup.getName());
 				if(lookup == null){
-					//erro not defined;
+					System.out.println("Variable " + tree.getChild(i).getVal() + " not defined");
 				}else if(!lookup.isInitialized()){
 					//erro\warning not initialized
+					System.out.println("Variable " + tree.getChild(i).getVal() + " not initialized");
 				}
 			}
 		}
@@ -191,10 +198,35 @@ public class SemanticChecker {
 				currFunct = children[i];
 				funcTable = new Table(moduleTable);
 				if(currFunct.getChild(0).getId().equals("Return")){
-					funcTable.insert(currFunct.getChild(0).getChild(1).getVal(), "function name", true);
-					funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", false);
+					//FUTURE allow same name but not same parameters
+					Table response = funcTable.lookupFunction(currFunct.getChild(0).getChild(1).getVal());
+					if(response==null){
+						System.out.println("null response " + currFunct.getChild(0).getChild(1).getVal());
+					}
+					if(funcTable.lookupFunction(currFunct.getChild(0).getChild(1).getVal()) == null){
+						funcTable.insert(currFunct.getChild(0).getChild(1).getVal(), "function name", true);
+					}else{
+						System.out.println("Function " + currFunct.getChild(0).getChild(1).getVal() +" redefinition");
+					}
+
+					if(funcTable.lookup(currFunct.getChild(0).getChild(0).getVal()) == null){
+						funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", true);
+					}else{
+						System.out.println("Return variable " + currFunct.getChild(0).getChild(0).getVal() + " already existis in global context");
+						funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", false);
+					}
 				}else{
-					funcTable.insert(currFunct.getChild(0).getVal(), "function name", true);
+					//FUTURE allow same name but not same parameters
+					Table response = funcTable.lookupFunction(currFunct.getChild(0).getVal());
+					if(response==null){
+						System.out.println("null response " + currFunct.getChild(0).getVal());
+					}
+					if(funcTable.lookupFunction(currFunct.getChild(0).getVal()) == null){
+						funcTable.insert(currFunct.getChild(0).getVal(), "function name", true);
+					}else{
+						System.out.println("Function " + currFunct.getChild(0).getVal() +" redefinition");
+						funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", false);
+					}
 				}
 				if(currFunct.getChildren().length > 1){
 					if(currFunct.getChild(1).getId().equals("Parameters")){
@@ -210,7 +242,6 @@ public class SemanticChecker {
 					}
 				}
 				moduleTable.insertChildTable(funcTable);
-				System.out.println("Table inserted");
 			}
 		}
 	}
