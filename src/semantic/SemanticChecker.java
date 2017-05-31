@@ -297,7 +297,24 @@ public class SemanticChecker {
 	}
 
 	public void checkCall(HIRTree tree, Table symbolTable){
-		//lookup function name and verify arguments, see if used vars are initialized
+		// io.println
+		if(tree.getChild(0).equals("io") && tree.getChild(1).equals("println")){
+			if(tree.getChild(3).equals("ArgumentList")){
+				HIRNode[] children = tree.getChildren();
+				for(int i=0; i<children.length;i++){
+					if (symbolTable.lookup(children[i].getId())!= null){
+						System.out.println("Print Variavel: " + children[i].getId() );
+					}
+					else{
+						System.out.println(" Variavel: " + children[i].getId() +" Nao existe (nao pode fazer print) ");
+					}
+				}
+			}
+			
+		}
+		
+		//
+
 	}
 	
 	public Table getTable(){
