@@ -199,7 +199,12 @@ void ArgumentList():{}
 }
 void Argument()#void:{}
 {
-	( Id() | <STRING> | Integer() )
+	( Id() | String() | Integer() )
+}
+
+void String() : { Token id; }
+{
+ id=<STRING> { jjtThis.val = id.image; }
 }
 
 Token Index():{Token t;}
