@@ -85,5 +85,16 @@ public class Table {
 	   else
 		   return -1;
    }
+   
+   public void dump(String prefix){
+	   for(Symbol s: tbl){
+		   System.out.println(prefix + s.getType() + " : " + s.getName());
+	   }
+	   System.out.println(prefix + "CHILD TABLES");
+	   for(Table t : children){
+		   t.dump(prefix + " ");
+		   System.out.println("");
+	   }
+   }
 	
 }
