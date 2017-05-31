@@ -23,26 +23,6 @@ public class SemanticChecker {
     			if(i == 0){ //Add module name to table
     				this.symbolTable.insert(child.getVal(), "module name", true);
     			}else if( i == 1 && child.getId().equals("DeclarationList")){
-    				//{/*Alternativa ao code anterior, guardar decls na symbol list do module. Mais fácil no lookup*/}
-    				
-    				/*for(int j = 0; j < child.getChildren().length; j++){
-    					if(child.getChild(j).getId().equals("Assign"))
-    						addAssign(child.getChild(j), this.symbolTable);
-    					else
-    					{
-    						if(this.symbolTable.lookup(child.getChild(j).getVal())==null)
-    						{
-    							System.out.println("null lookup on val: " + child.getChild(j).getVal());
-    							if(child.getChild(j).getId().equals("Id"))
-    								this.symbolTable.insert(child.getChild(j).getVal(), "int", false); //Push int
-    							else
-    								this.symbolTable.insert(child.getChild(j).getChild(0).getVal(), "array", false); //Push Array
-    						}else{
-    							//supostamente error var; again
-    							System.out.println("Redeclaration");
-    						}
-    					}
-    				}*/
 
     				for(int k=0 ; k<child.getChildren().length ; k++){
 						if(child.getChild(k).getId().equals("Assign")){
@@ -121,7 +101,6 @@ public class SemanticChecker {
 	    	}
     		break;
     	}
-		//return erros; //em vez de ^^^
 	}
 
 	public void addAssign(HIRTree tree, Table symbolTable){
