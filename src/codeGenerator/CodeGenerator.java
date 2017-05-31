@@ -25,9 +25,11 @@ public class CodeGenerator {
 	public void translator(StringBuilder jvm, HIRTree ast, Table st){
 		switch (ast.getId()){
 			case "Module":
+				System.out.println("\n===CODE GENERATION===");
+				symbolTable.dump("");
 				setModuleHeader(st.getVariables().get(0).getName(), jvm);
 				if(st.getVariables().size() > 1) /*Se tiver globais definir agora*/
-					setGlobals(st.getVariables(), ast.getChild(1), jvm); 
+					setGlobals(st.getVariables(), ast.getChild(1), jvm, st.getSymbol(0).getName()); 
 				jvm.append("\n");
 				if(ast.getChildren().length > 2){ //Verificar se existem funções
 					for(int i = 2; i < ast.getChildren().length; i++){
@@ -43,17 +45,22 @@ public class CodeGenerator {
 				localOffset = paramOffset == 0 ? 0 : getLocalStart(st, paramOffset) - paramOffset;
 				if(!isVoid)
 					retIndex = getReturnVarIndex(st, paramOffset);
-				/*DEBUG*/
-				System.out.println("");
-				for(Symbol s : st.getVariables()){
-					System.out.println(s.getType() + " : " + s.getName());
-				}
-				System.out.println("");
 				/*Inicializar nome de função e stack*/
-				setFunctionHeader(jvm, st);
+				setFunctionHeader(jvm, st, paramOffset);
+				/*Gerar código*/
+				int i = paramOffset == 0 ? 1 : 2;
+				while( i < ast.getChildren().length){
+					HIRTree operation = ast.getChild(i);
+					switch (operation.getId()){
+					case "Call":
+						genCallCode(jvm, st, operation, paramOffset, localOffset);
+						break;
+					}
+					i++;
+				}
 				/*Colocar valores de retorno*/
 				if(isVoid)
-					jvm.append(" return\n.end method\n");
+					jvm.append("return\n.end method\n");
 				else
 					jvm.append(" iload "+retIndex+"\n ireturn\n.end method\n");
 		}
@@ -68,7 +75,7 @@ public class CodeGenerator {
 	}
 	
 	/*Definir globais*/
-	public void setGlobals(ArrayList<Symbol> vars, HIRTree tree,StringBuilder jvm){
+	public void setGlobals(ArrayList<Symbol> vars, HIRTree tree,StringBuilder jvm, String modName){
 		String gvars = "";
 		Symbol s;
 		for(int i = 1; i < vars.size(); i++){
@@ -82,7 +89,7 @@ public class CodeGenerator {
 			}else if(s.getType() == "array"){
 				gvars = gvars + ".field static " + s.getName() + " [I\n";
 				if(tree.getChild(i - 1).getChild(1).getId().equals("ArraySize")){
-					addInitArray(s.getName(), tree.getChild(i - 1).getChild(1).getChild(0).getVal());
+					addInitArray(s.getName(), tree.getChild(i - 1).getChild(1).getChild(0).getVal(), modName);
 				}
 			}
 		}
@@ -90,30 +97,55 @@ public class CodeGenerator {
 	}
 	
 	/*Create array init functions*/
-	public void addInitArray(String var, String val){
+	public void addInitArray(String var, String val, String mName){
 		arrayIniters = arrayIniters +
-				"method static public <clinit>()V\n"+
-				" .limit stack 2\n"+
-				" .limit locals 0\n"+
-				" bipush "+val+"\n"+
-				" newarray int\n"+
-				" putstatic fields1/" + var + " [I\n"+
-				" return\n"+
+				".method static public <clinit>()V\n"+
+				".limit stack 2\n"+
+				".limit locals 0\n"+
+				"bipush "+val+"\n"+
+				"newarray int\n"+
+				"putstatic "+mName+"/" + var + " [I\n"+
+				"return\n"+
 				".end method\n";
 	}
 	
 	/*Inicializar funnção*/
-	public void setFunctionHeader(StringBuilder jvm, Table ast){
-		jvm.append(
-				".method public static\n"+ast.getSymbol(0).getName()+"([Ljava/lang/String;)V\n"
-				);
+	public void setFunctionHeader(StringBuilder jvm, Table st, int paramStart){
+		jvm.append(".method public static ");
+		if(st.getSymbol(0).getName().equals("main")) //Is this function an entry point?
+		{
+			jvm.append("main([Ljava/lang/String;)V\n");
+		}
+		else{
+			jvm.append(st.getSymbol(0).getName()+"(");
+			String[] splits;
+			if(paramStart > 0){
+				for(int i = paramStart; i < st.getVariables().size(); i++){
+					splits = st.getSymbol(i).getType().split(" ");
+					if(splits[0].equals("parameter")){
+						if(splits[1].equals("int"))
+							jvm.append("I");
+						else
+							jvm.append("[I");
+					}
+					else
+						break;
+				}
+			}
+			jvm.append(")V\n");
+		}
 	}
 	
 	public boolean isVoid(Table st){
-		if(st.getSymbol(1).getType().equals("return"))
-			return false;
-		else
+		try{
+			if(st.getSymbol(1).getType().equals("return"))
+				return false;
+			else
+				return true;
+			}
+		catch(IndexOutOfBoundsException e){
 			return true;
+		}
 	}
 	
 	public int getParamStart(Table st, boolean isVoid){
@@ -123,11 +155,18 @@ public class CodeGenerator {
 			else
 				return 0;
 		}
-		else if(st.getSymbol(1).getType().split(" ")[0].equals("parameter")){
-				return 1;
+		else{ 
+			try{
+				if(st.getSymbol(1).getType().split(" ")[0].equals("parameter")){
+						return 1;
+				}
+				else
+					return 0;
+			}
+			catch(IndexOutOfBoundsException e){
+				return 0;
+			}
 		}
-		else
-			return 0;
 	}
 	
 	public int getLocalStart(Table st, int paramStart){
@@ -148,5 +187,24 @@ public class CodeGenerator {
 			i++;
 		}
 		return i;
+	}
+	
+	public void genCallCode(StringBuilder jvm, Table st, HIRTree node, int params, int locals){
+		if(node.getChild(0).getVal().equals("io")){ //Is it an IO operation?
+			if(node.getChild(1).getVal().equals("print")){ //Is it outputting data?
+				HIRTree arguments = node.getChild(2);
+				String argBuffer = "";
+				for(HIRTree arg : arguments.getChildren()){
+					switch (arg.getId()){
+					case "String":
+						jvm.append("ldc "+arg.getVal()+"\n");
+						argBuffer = argBuffer + "Ljava/lang/String;";
+						break;
+					}
+				}
+				//argBuffer = argBuffer.substring(0, argBuffer.lastIndexOf(';'));
+				jvm.append("invokestatic io/print("+argBuffer+")V\n");
+			}
+		}
 	}
 }
