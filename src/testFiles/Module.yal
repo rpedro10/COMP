@@ -1,11 +1,11 @@
-module EmptyModule{
+module Hello{
 
 	a;
 	b=10;
 	c[];
 	d=[10];
 	
-	function f1(){
-	
+	function main(){
+		io.print("Hello World");
 	}
 }
