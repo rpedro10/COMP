@@ -52,7 +52,7 @@ public class CodeGenerator {
 				if(!isVoid)
 					retIndex = getReturnVarIndex(st, paramOffset);
 				/*Inicializar nome de função e stack*/
-				setFunctionHeader(jvm, st, paramOffset);
+				setFunctionHeader(jvm, st, paramOffset, isVoid);
 				limitStack(jvm,ast);
 				int numLocals = st.getVariables().size() - getLocalStart(st, paramOffset);
 				if(numLocals > 1){
@@ -123,7 +123,7 @@ public class CodeGenerator {
 	}
 	
 	/*Inicializar função*/
-	public void setFunctionHeader(StringBuilder jvm, Table st, int paramStart){
+	public void setFunctionHeader(StringBuilder jvm, Table st, int paramStart, boolean isVoid){
 		jvm.append(".method public static ");
 		if(st.getSymbol(0).getName().equals("main")) //Is this function an entry point?
 		{
@@ -145,7 +145,10 @@ public class CodeGenerator {
 						break;
 				}
 			}
-			jvm.append(")V\n");
+			if(isVoid)
+				jvm.append(")V\n");
+			else
+				jvm.append(")I\n");
 		}	
 	}
 	
@@ -170,11 +173,17 @@ public class CodeGenerator {
 					}
 				}
 			}
+			else if(op.getId().equals("Call")){
+				curr = op.getChild(op.getChildren().length - 1).getChildren().length;
+			}
 			if(curr > max)
 				max = curr;
 			curr = 0;
 		}
-		jvm.append(".limit stack "+max+"\n");
+		if( max > 0)
+			jvm.append(".limit stack "+max+"\n");
+		else
+			jvm.append(".limit stack 1\n");
 	}
 	
 	public boolean isVoid(Table st){
@@ -241,9 +250,17 @@ public class CodeGenerator {
 						jvm.append("ldc "+arg.getVal()+"\n");
 						argBuffer = argBuffer + "Ljava/lang/String;";
 						break;
+					case "Id":
+						argBuffer = argBuffer + "I;";
+						Symbol s = st.lookup(arg.getVal());
+						int ssPosition = st.getVariables().indexOf(s) - (params + locals);
+						jvm.append("iload_"+ssPosition+"\n");
+						break;
 					}
 				}
-				//argBuffer = argBuffer.substring(0, argBuffer.lastIndexOf(';'));
+				if(argBuffer.split(";").length > 1){
+					argBuffer = argBuffer.substring(0, argBuffer.lastIndexOf(';'));
+				}
 				jvm.append("invokestatic io/"+node.getChild(1).getVal()+"("+argBuffer+")V\n");
 			}
 		}
@@ -251,18 +268,139 @@ public class CodeGenerator {
 	
 	public void genAssignCode(StringBuilder jvm, Table st, HIRTree node, int params, int locals){
 		String S1 = "", S2 = "";
-		if(node.getChild(0).getId()=="Id"){
+		if(node.getChild(0).getId().equals("Id")){
 			Symbol s = st.lookup(node.getChild(0).getVal());
 			int position = st.getVariables().indexOf(s) - (params + locals);
-			//Verificar se é array ou int
-			//Se array efetuar astore
-				//Ver rhs
-				//O Arraysize é uma var ou um const?
-					//lookup da var e efetuar iload
-					//Se const fazer bipush se > 5 senão iconst
-			//Se id fazer istore
-				//implementar método RHS e invocar
+			if(s.getType().equals("array")){
+				S2 = "astore_"+position+"\n";
+				String arraysize = node.getChild(1).getChild(0).getVal();
+				if(node.getChild(1).getChild(0).getId().equals("Integer")){
+					int numInt = Integer.parseInt(arraysize);
+					if(numInt > 5)
+						S1 = "bipush " + numInt+"\n";
+					else
+						S1 = "iconst_"+numInt+"\n";
+				}else{
+					Symbol ss = st.lookup(arraysize);
+					int ssPosition = st.getVariables().indexOf(ss) - (params + locals);
+					S1 = "iload_"+ssPosition+"\n";
+				}
+				S1 = S1 + "newarray int\n";
+				jvm.append(S1+S2);
+			}
+			else{
+				S2 = "istore_"+position+"\n";
+				S1 = genRHSCode(st, node.getChild(1), params + locals);
+				jvm.append(S1 + S2);
+			}
 		}
+		else{
+			Symbol s = st.lookup(node.getChild(0).getChild(0).getVal());
+			int position = st.getVariables().indexOf(s) - (params + locals);
+			S1 = "aload_"+position+"\n";
+			String val = node.getChild(0).getChild(1).getVal();
+			try{
+				int numInt = Integer.parseInt(val);
+				if(numInt > 5)
+					S1 = S1 + "bipush " + numInt+"\n";
+				else
+					S1 = S1+ "iconst_"+numInt+"\n";
+			}catch (NumberFormatException e){
+				Symbol ss = st.lookup(val);
+				int ssPosition = st.getVariables().indexOf(ss) - (params + locals);
+				S1 = S1 + "iload_"+ssPosition+"\n";
+			}
+			S2 = "iastore\n";
+			S1 = S1 + genRHSCode(st, node.getChild(1), params + locals);
+			jvm.append(S1 + S2);
+		}
+	}
+	
+	public String genRHSCode(Table st, HIRTree node,  int offset){
+		String code = "";
+		if(node.getId().equals("Id")){
+			String val = node.getVal();
+			Symbol s = st.lookup(val);
+			int sp = st.getVariables().indexOf(s) - offset;
+			code = "iload_"+sp+"\n";
+		} else if(node.getId().equals("Integer")){
+			String val = node.getVal();
+			int numVal = Integer.parseInt(val);
+			if(numVal > 5)
+				code = "bipush "+numVal+"\n";
+			else
+				code = "iconst_"+numVal+"\n";
+		}
+		else if(node.getId().equals("Array")){
+			Symbol s = st.lookup(node.getChild(0).getVal());
+			int position = st.getVariables().indexOf(s) - offset;
+			code = "iaload\n";
+			String val = node.getChild(1).getVal();
+			try{
+				int numInt = Integer.parseInt(val);
+				if(numInt > 5)
+					code = "bipush " + numInt+"\n"+code;
+				else
+					code = "iconst_"+numInt+"\n" + code;
+			}catch (NumberFormatException e){
+				Symbol ss = st.lookup(val);
+				int ssPosition = st.getVariables().indexOf(ss) - offset;
+				code = "iload_"+ssPosition+"\n" + code;
+			}
+			code = "aload_"+position+"\n"+code;
+		}
+		else{
+			switch (node.getVal()){
+				case "+":
+					code = "iadd\n";
+					break;
+				case "-":
+					code = "isub\n";
+					break;
+				case "*":
+					code = "imul\n";
+					break;
+				case "/":
+					code = "idiv\n";
+					break;
+			}
+			for(HIRTree arg : node.getChildren()){
+				String val = arg.getVal();
+				if(arg.getId().equals("Id")){
+					Symbol s = st.lookup(val);
+					int sp = st.getVariables().indexOf(s) - offset;
+					code = "iload_"+sp+"\n" + code;
+				}else if(arg.getId().equals("Integer")){
+					int numVal = Integer.parseInt(val);
+					if(numVal > 5)
+						code = "bipush "+numVal+"\n" + code;
+					else
+						code = "iconst_"+numVal+"\n" + code;
+				}
+				else{
+					code = "iaload\n" + code;
+					
+					try{
+						int numVal = Integer.parseInt(arg.getChild(1).getVal());
+						if(numVal > 5)
+							code = "bipush "+numVal+"\n" + code;
+						else
+							code = "iconst_"+numVal+"\n" + code;
+					}catch(NumberFormatException e){
+						Symbol s = st.lookup(arg.getChild(1).getVal());
+						int sp = st.getVariables().indexOf(s) - offset;
+						code = "iload_"+sp+"\n" + code;
+					}
+					
+					Symbol s = st.lookup(arg.getChild(0).getVal());
+					int sp = st.getVariables().indexOf(s) - offset;
+					code = "aload_"+sp+"\n"+code;
+					
+				}
+			}
+			
+		}
+		return code;
 	}
 	
 	public void writeJasminFile(StringBuilder jvm, String className){
