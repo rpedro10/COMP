@@ -175,11 +175,16 @@ public class SemanticChecker {
 					//System.out.println("null assign lookup on " + tree.getChild(i).getVal());
 					if( lookup == null){
 						if(tree.getChild(i + 1).getId().equals("ArraySize")){
-							if(Integer.parseInt(tree.getChild(i+1).getChild(0).getVal())>0){
+							try{
+								if(Integer.parseInt(tree.getChild(i+1).getChild(0).getVal())>0){
+									symbolTable.insert(tree.getChild(i).getVal(), "array", false);
+									System.out.println("Define " + tree.getChild(i).getVal());
+								}else{
+									System.out.println("ArraySize must be greater than 0");
+								}
+							}
+							catch(NumberFormatException e){
 								symbolTable.insert(tree.getChild(i).getVal(), "array", false);
-								System.out.println("Define " + tree.getChild(i).getVal());
-							}else{
-								System.out.println("ArraySize must be greater than 0");
 							}
 						}else if(tree.getChild(i + 1).getId().equals("Integer")){
 							symbolTable.insert(tree.getChild(i).getVal(), "int", true);
