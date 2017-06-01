@@ -201,12 +201,38 @@ public class SemanticChecker {
 						}
 					}else{
 						if(tree.getChild(i + 1).getId().equals("ArraySize")){
-							if(Integer.parseInt(tree.getChild(i+1).getChild(0).getVal())<=0)
-								System.out.println("ArraySize must be greater than 0");
+							if(!lookup.getType().equals("int") && !lookup.getType().equals("parameter int")){
+								if(Integer.parseInt(tree.getChild(i+1).getChild(0).getVal())<=0)
+									System.out.println("ArraySize must be greater than 0");
+							}else{
+								System.out.println("Variable " + tree.getChild(i).getVal() + " is not an array");
+							}
 						}else{
 							lookup.setInitialized();
 						}
 					}
+				}else if(tree.getChild(i).getId().equals("Array")){
+					lookup = symbolTable.lookup(tree.getChild(i).getChild(0).getVal());
+					if(lookup == null){
+						//erro not defined;
+						System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not defined");
+					}else if(!lookup.getType().equals("array")  && !lookup.getType().equals("parameter array")){
+						System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not an array");
+					}else if(!lookup.isInitialized()){
+						//erro\warning not initialized
+						System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not initialized");
+					}
+				}
+			}else if(tree.getChild(i).getId().equals("Array")){
+				lookup = symbolTable.lookup(tree.getChild(i).getChild(0).getVal());
+				if(lookup == null){
+					//erro not defined;
+					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not defined");
+				}else if(!lookup.getType().equals("array")  && !lookup.getType().equals("parameter array")){
+					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not an array");
+				}else if(!lookup.isInitialized()){
+					//erro\warning not initialized
+					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not initialized");
 				}
 			}else if(tree.getChild(i).getId().equals("Arith")){
 				addArithm(tree.getChild(i), symbolTable);
@@ -239,6 +265,17 @@ public class SemanticChecker {
 				}else if(!lookup.isInitialized()){
 					//erro\warning not initialized
 					System.out.println("Variable " + tree.getChild(i).getVal() + " not initialized");
+				}
+			}else if(tree.getChild(i).getId().equals("Array")){
+				Symbol lookup = symbolTable.lookup(tree.getChild(i).getChild(0).getVal());
+				if(lookup == null){
+					//erro not defined;
+					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not defined");
+				}else if(!lookup.getType().equals("array")){
+					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not an array");
+				}else if(!lookup.isInitialized()){
+					//erro\warning not initialized
+					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not initialized");
 				}
 			}else if(tree.getChild(i).getId().equals("Call")){
 				checkCall(tree.getChild(i), symbolTable);
