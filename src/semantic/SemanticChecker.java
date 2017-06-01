@@ -81,7 +81,29 @@ public class SemanticChecker {
     		for(int i=0; i < hr.getChildren().length; i++){
     			child=hr.getChild(i);
 	    		if(child.getId().equals("Exprtest")){
-	    			//validar expressão
+	    			for(HIRTree subChild : child.getChildren()){
+		    			if(subChild.getId().equals("Id")){
+		    				Symbol lookup = symbolTable.lookup(subChild.getVal());
+							//System.out.println(lookup.getName());
+							if(lookup == null){
+								System.out.println("Variable " + subChild.getVal() + " not defined");
+							}else if(!lookup.isInitialized()){
+								//erro\warning not initialized
+								System.out.println("Variable " + subChild.getVal() + " not initialized");
+							}
+		    			}if(subChild.getId().equals("Array")){
+		    				Symbol lookup = symbolTable.lookup(subChild.getChild(0).getVal());
+							//System.out.println(lookup.getName());
+							if(lookup == null){
+								System.out.println("Variable " + subChild.getChild(0).getVal() + " not defined");
+							}else if(!lookup.isInitialized()){
+								//erro\warning not initialized
+								System.out.println("Variable " + subChild.getChild(0).getVal() + " not initialized");
+							}
+		    			}else if(subChild.getId().equals("Arith")){
+		    				addArithm(subChild, symbolTable);
+		    			}
+		    		}
 	    		}else if(child.getId().equals("Assign")){
 	    			addAssign(child,symbolTable);
 	    		}else if(child.getId().equals("If")){
@@ -102,7 +124,29 @@ public class SemanticChecker {
     		for(int i=0; i < hr.getChildren().length; i++){
     			child=hr.getChild(i);
 	    		if(child.getId().equals("Exprtest")){
-	    			//validar expressão
+	    			for(HIRTree subChild : child.getChildren()){
+		    			if(subChild.getId().equals("Id")){
+		    				Symbol lookup = symbolTable.lookup(subChild.getVal());
+							//System.out.println(lookup.getName());
+							if(lookup == null){
+								System.out.println("Variable " + subChild.getVal() + " not defined");
+							}else if(!lookup.isInitialized()){
+								//erro\warning not initialized
+								System.out.println("Variable " + subChild.getVal() + " not initialized");
+							}
+		    			}else if(subChild.getId().equals("Array")){
+		    				Symbol lookup = symbolTable.lookup(subChild.getChild(0).getVal());
+							//System.out.println(lookup.getName());
+							if(lookup == null){
+								System.out.println("Variable " + subChild.getChild(0).getVal() + " not defined");
+							}else if(!lookup.isInitialized()){
+								//erro\warning not initialized
+								System.out.println("Variable " + subChild.getChild(0).getVal() + " not initialized");
+							}
+		    			}else if(subChild.getId().equals("Arith")){
+		    				addArithm(subChild, symbolTable);
+		    			}
+		    		}
 	    		}else if(child.getId().equals("Assign")){
 	    			addAssign(child,symbolTable);
 	    		}else if(child.getId().equals("If")){
@@ -297,7 +341,24 @@ public class SemanticChecker {
 	}
 
 	public void checkCall(HIRTree tree, Table symbolTable){
-		//lookup function name and verify arguments, see if used vars are initialized
+		// io.println
+		if(tree.getChild(0).equals("io") && tree.getChild(1).equals("println")){
+			if(tree.getChild(3).equals("ArgumentList")){
+				HIRNode[] children = tree.getChild(3).getChildren();
+				for(int i=0; i<children.length;i++){
+					if (symbolTable.lookup(children[i].getVal())!= null){
+						System.out.println("Print Variavel: " + children[i].getId() );
+					}
+					else{
+						System.out.println(" Variavel: " + children[i].getId() +" Nao existe (nao pode fazer print) ");
+					}
+				}
+			}
+			
+		}
+		
+		//
+
 	}
 	
 	public Table getTable(){
