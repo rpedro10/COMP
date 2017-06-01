@@ -5,17 +5,21 @@ import javax.xml.soap.Node;
 
 public class Error {
 	
-	String funcName;
-	String callType;
+	String variavel;
+	String mensagem;
 	int line;
-	Node calledArgs;
 
   
-	public Error (String fName, String cType, int errorLine, Node args) {
-	    funcName = fName;
-	    callType = cType;
-	    line = errorLine;
-	    calledArgs = args;
+	public Error (String var, int linha, String msg) {
+	    line = linha;
+	    mensagem = msg;
+	    variavel = var;
+	}
+	
+	
+	public void printError(){
+		
+		System.out.printf("linha: "+ line  +" --> "+ mensagem+":"+ variavel +'\n');
 	}
 
 }

@@ -17,7 +17,6 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
                         root.dump("", hir);
                         hir.dump("");
 
-
                 }catch(IOException e){
                         e.printStackTrace();
                 }
