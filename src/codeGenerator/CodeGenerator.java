@@ -1,4 +1,8 @@
 package codeGenerator;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import semantic.HIRTree;
@@ -37,16 +41,23 @@ public class CodeGenerator {
 					}
 				}
 				jvm.append(this.arrayIniters);
+				writeJasminFile(jvm, st.getSymbol(0).getName());
 				break;
 			case "Function":
 				/*Obter posições das variaveis para alocar a stack e saber onde fica o retorno*/
 				boolean isVoid = isVoid(st);
 				int paramOffset = getParamStart(st, isVoid), localOffset, retIndex = 0;
-				localOffset = paramOffset == 0 ? 0 : getLocalStart(st, paramOffset) - paramOffset;
+				//localOffset = paramOffset == 0 ? 0 : getLocalStart(st, paramOffset) - paramOffset;
+				localOffset = getLocalStart(st, paramOffset);
 				if(!isVoid)
 					retIndex = getReturnVarIndex(st, paramOffset);
 				/*Inicializar nome de função e stack*/
 				setFunctionHeader(jvm, st, paramOffset);
+				limitStack(jvm,ast);
+				int numLocals = st.getVariables().size() - getLocalStart(st, paramOffset);
+				if(numLocals > 1){
+					jvm.append(".limit locals "+numLocals+"\n");
+				}
 				/*Gerar código*/
 				int i = paramOffset == 0 ? 1 : 2;
 				while( i < ast.getChildren().length){
@@ -55,6 +66,8 @@ public class CodeGenerator {
 					case "Call":
 						genCallCode(jvm, st, operation, paramOffset, localOffset);
 						break;
+					case "Assign":
+						genAssignCode(jvm, st, operation, paramOffset, localOffset);
 					}
 					i++;
 				}
@@ -109,7 +122,7 @@ public class CodeGenerator {
 				".end method\n";
 	}
 	
-	/*Inicializar funnção*/
+	/*Inicializar função*/
 	public void setFunctionHeader(StringBuilder jvm, Table st, int paramStart){
 		jvm.append(".method public static ");
 		if(st.getSymbol(0).getName().equals("main")) //Is this function an entry point?
@@ -133,7 +146,35 @@ public class CodeGenerator {
 				}
 			}
 			jvm.append(")V\n");
+		}	
+	}
+	
+	public void limitStack(StringBuilder jvm, HIRTree ast){
+		int max = 0, curr = 0;
+		for(HIRTree op : ast.getChildren()){
+			if(op.getId().equals("Assign")){
+				if(op.getChild(0).getId().equals("Array"))
+					curr = 2;
+				if(op.getChild(1).getId().equals("Arith")){
+					HIRTree child = op.getChild(1);
+					if(child.getChild(0).getId().equals("Array") && child.getChild(1).getId().equals("Array"))
+						curr += 3;
+					else
+						curr += 2;
+				}else{
+					if(op.getChild(1).getId().equals("ArraySize")){
+						curr += 2;
+					}
+					else{
+						curr++;
+					}
+				}
+			}
+			if(curr > max)
+				max = curr;
+			curr = 0;
 		}
+		jvm.append(".limit stack "+max+"\n");
 	}
 	
 	public boolean isVoid(Table st){
@@ -191,7 +232,7 @@ public class CodeGenerator {
 	
 	public void genCallCode(StringBuilder jvm, Table st, HIRTree node, int params, int locals){
 		if(node.getChild(0).getVal().equals("io")){ //Is it an IO operation?
-			if(node.getChild(1).getVal().equals("print")){ //Is it outputting data?
+			if(node.getChild(1).getVal().equals("print") || node.getChild(1).getVal().equals("println")){ //Is it outputting data?
 				HIRTree arguments = node.getChild(2);
 				String argBuffer = "";
 				for(HIRTree arg : arguments.getChildren()){
@@ -203,8 +244,38 @@ public class CodeGenerator {
 					}
 				}
 				//argBuffer = argBuffer.substring(0, argBuffer.lastIndexOf(';'));
-				jvm.append("invokestatic io/print("+argBuffer+")V\n");
+				jvm.append("invokestatic io/"+node.getChild(1).getVal()+"("+argBuffer+")V\n");
 			}
 		}
+	}
+	
+	public void genAssignCode(StringBuilder jvm, Table st, HIRTree node, int params, int locals){
+		String S1 = "", S2 = "";
+		if(node.getChild(0).getId()=="Id"){
+			Symbol s = st.lookup(node.getChild(0).getVal());
+			int position = st.getVariables().indexOf(s) - (params + locals);
+			//Verificar se é array ou int
+			//Se array efetuar astore
+				//Ver rhs
+				//O Arraysize é uma var ou um const?
+					//lookup da var e efetuar iload
+					//Se const fazer bipush se > 5 senão iconst
+			//Se id fazer istore
+				//implementar método RHS e invocar
+		}
+	}
+	
+	public void writeJasminFile(StringBuilder jvm, String className){
+		String path = Paths.get("").toAbsolutePath().toString();
+		path = path.substring(0, path.lastIndexOf("/"));
+		path = path + "/src/testFiles/" + className + ".j";
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(path));
+			bw.write(jvm.toString());
+			bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 }
