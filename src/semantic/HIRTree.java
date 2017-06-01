@@ -6,9 +6,17 @@ public class HIRTree implements HIRNode {
 	protected String id; //Identifiers, Module, Integer, Array, Expr, Add, Assign, Function, ect.
 	protected String value; //Value of the identifiers, names, numbers, arithexpr etc..
 	protected int line;
+	protected int column;
 	
 	public  int getLine(){
 		return line;
+	}
+	
+	public int getCollumn(){return column;}
+	
+	public void setLineColumn(int line, int column){
+		this.line = line;
+		this.column = column;
 	}
 	
 	//TODO add begin line
