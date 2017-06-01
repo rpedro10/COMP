@@ -9,8 +9,8 @@ class SimpleNode implements Node {
   protected Object value;
   protected Parser parser;
   
-  public int line;
-
+  protected int line;
+  protected int column;
   
   //Added
   public String val = "Undefined";
@@ -19,14 +19,13 @@ class SimpleNode implements Node {
 	  
     id = i;
     line = parser.getToken(id).beginLine;
-
+    column = parser.getToken(id).beginColumn;
   }
 
   public SimpleNode(Parser p, int i) {
     this(i);
     parser = p;
-    line = parser.getToken(id).beginLine;
-    
+   
   }
 
   public void jjtOpen() {
@@ -74,6 +73,7 @@ class SimpleNode implements Node {
 
   public void dump(String prefix, semantic.HIRTree hr) {
     boolean makeChild = true;
+    hr.setLineColumn(line, column);
     if (children != null) {
       switch (this.id){
       case ParserTreeConstants.JJTPARAM:
