@@ -5,6 +5,11 @@ public class HIRTree implements HIRNode {
 	protected HIRTree children[];
 	protected String id; //Identifiers, Module, Integer, Array, Expr, Add, Assign, Function, ect.
 	protected String value; //Value of the identifiers, names, numbers, arithexpr etc..
+	protected int line;
+	
+	public  int getLine(){
+		return line;
+	}
 	
 	//TODO add begin line
 	public HIRTree(){

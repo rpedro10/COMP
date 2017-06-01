@@ -9,16 +9,24 @@ class SimpleNode implements Node {
   protected Object value;
   protected Parser parser;
   
+  public int line;
+
+  
   //Added
   public String val = "Undefined";
 
   public SimpleNode(int i) {
+	  
     id = i;
+    line = parser.getToken(id).beginLine;
+
   }
 
   public SimpleNode(Parser p, int i) {
     this(i);
     parser = p;
+    line = parser.getToken(id).beginLine;
+    
   }
 
   public void jjtOpen() {
