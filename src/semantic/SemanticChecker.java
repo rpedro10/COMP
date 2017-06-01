@@ -192,6 +192,12 @@ public class SemanticChecker {
 						}else if(tree.getChild(i + 1).getId().equals("Id")){
 							symbolTable.insert(tree.getChild(i).getVal(), "int", true);
 							System.out.println("Initialize " + tree.getChild(i).getVal());
+						}else if(tree.getChild(i + 1).getId().equals("Arith")){					/*===================*/
+							symbolTable.insert(tree.getChild(i).getVal(), "int", true);			//Estas linhas são um//
+							System.out.println("Initialize " + tree.getChild(i).getVal());		//remendo para que   //
+						}else if(tree.getChild(i + 1).getId().equals("Array")){					//codegen funcione   //
+							symbolTable.insert(tree.getChild(i).getVal(), "int", true);			//depois vejam melhor//
+							System.out.println("Initialize " + tree.getChild(i).getVal());		/*==================*/
 						}
 					}else{
 						if(tree.getChild(i + 1).getId().equals("ArraySize")){
