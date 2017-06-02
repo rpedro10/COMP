@@ -61,6 +61,7 @@ public class CodeGenerator {
 				}
 				/*Gerar código*/
 				int i = paramOffset == 0 ? 1 : 2;
+				int tableCounter = 0;
 				while( i < ast.getChildren().length){
 					HIRTree operation = ast.getChild(i);
 					switch (operation.getId()){
@@ -69,6 +70,24 @@ public class CodeGenerator {
 						break;
 					case "Assign":
 						genAssignCode(jvm, st, operation);
+						break;
+					case "If":
+						try{
+							HIRTree elseBlock = ast.getChild(i + 1);
+							if(elseBlock.getId().equals("Else")){
+								Table ifTbl = st.getChild(tableCounter);
+								Table elseTbl = st.getChild(tableCounter + 1);
+								genIfElseCode(jvm, ifTbl, elseTbl, operation, elseBlock, tableCounter);
+								i++;
+								tableCounter += 2;
+							}
+							else{
+								Table ifTbl = st.getChild(tableCounter);
+								genIfElseCode(jvm, ifTbl, null, operation, null, tableCounter);
+								tableCounter++;
+							}
+						}catch(ArrayIndexOutOfBoundsException e){}
+						break;
 					}
 					i++;
 				}
@@ -76,7 +95,47 @@ public class CodeGenerator {
 				if(isVoid)
 					jvm.append("return\n.end method\n");
 				else
-					jvm.append(" iload "+retIndex+"\n ireturn\n.end method\n");
+					jvm.append("iload "+retIndex+"\nireturn\n.end method\n");
+		}
+	}
+	
+	public void genIfElseCode(StringBuilder jvm, Table ifTbl, Table elseTbl, HIRTree ifOp, HIRTree elseOp, int label){
+		if(elseTbl == null){
+			String jmp = "";
+			for(HIRTree comp : ifOp.getChild(0).getChildren()){
+				if(comp.getId().equals("Integer")){
+					int numInt = Integer.parseInt(comp.getVal());
+					if(numInt > 5)
+						jmp = jmp + "bipush " + numInt+"\n";
+					else
+						jmp = jmp + "iconst_"+numInt+"\n";
+				}else{
+					jmp = jmp + varLoad(comp.getVal(), ifTbl);
+				}
+			}
+			jmp = jmp + "isub\n";
+			//if (5 > 2) --> 5 - 2 > 0 ? ---> iload5 iload 2 isub
+			switch (ifOp.getChild(0).getVal()){
+				case ">":
+					jmp = jmp + "ifle ";
+					break;
+				case ">=":
+					jmp = jmp + "iflt ";
+					break;
+				case "<":
+					jmp = jmp + "ifge ";
+					break;
+				case "<=":
+					jmp = jmp + "ifgt ";
+					break;
+				case "==":
+					jmp = jmp + "ifne ";
+					break;
+				case "!=":
+					jmp = jmp + "ifeq ";
+					break;
+			}
+			jmp = jmp + "label"+label+"\n";
 		}
 	}
 	
@@ -174,7 +233,8 @@ public class CodeGenerator {
 				}
 			}
 			else if(op.getId().equals("Call")){
-				curr = op.getChild(op.getChildren().length - 1).getChildren().length;
+				if(op.getChild(op.getChildren().length - 1).getChildren() != null)
+					curr = op.getChild(op.getChildren().length - 1).getChildren().length;
 			}
 			if(curr > max)
 				max = curr;
@@ -236,10 +296,10 @@ public class CodeGenerator {
 	}
 	
 	public void genCallCode(StringBuilder jvm, Table st, HIRTree node){
+		String argBuffer = "";
 		if(node.getChild(0).getVal().equals("io")){ //Is it an IO operation?
 			if(node.getChild(1).getVal().equals("print") || node.getChild(1).getVal().equals("println")){ //Is it outputting data?
 				HIRTree arguments = node.getChild(2);
-				String argBuffer = "";
 				for(HIRTree arg : arguments.getChildren()){
 					switch (arg.getId()){
 					case "String":
@@ -247,16 +307,30 @@ public class CodeGenerator {
 						argBuffer = argBuffer + "Ljava/lang/String;";
 						break;
 					case "Id":
-						argBuffer = argBuffer + "I;";
+						argBuffer = argBuffer + "I";
 						jvm.append(varLoad(arg.getVal(), st));
 						break;
 					}
 				}
-				if(argBuffer.split(";").length > 1){
+				/*if(argBuffer.split(";").length > 1){
 					argBuffer = argBuffer.substring(0, argBuffer.lastIndexOf(';'));
-				}
+				}*/
 				jvm.append("invokestatic io/"+node.getChild(1).getVal()+"("+argBuffer+")V\n");
 			}
+		}
+		else{
+			HIRTree arguments = node.getChild(node.getChildren().length - 1);
+			if(arguments.getChildren() != null){
+				for(HIRTree arg : arguments.getChildren()){
+					argBuffer = argBuffer + "I";
+					jvm.append(varLoad(arg.getVal(),st));
+				}
+			}
+			jvm.append("invokestatic "+st.getModuleName()+"/"+node.getChild(0).getVal()+"("+argBuffer+")");
+			if(isVoid(st.lookupFunction(node.getChild(0).getVal())))
+				jvm.append("V\n");
+			else
+				jvm.append("I\n");
 		}
 	}
 	
@@ -347,6 +421,11 @@ public class CodeGenerator {
 				code = varLoad(val, st) + code;
 			}
 			code = isGlobal ? "getstatic "+st.getModuleName()+"/"+s.getName()+" [I\n" : "aload_"+position+"\n"+code;
+		}
+		else if(node.getId().equals("Call")){
+			StringBuilder temp = new StringBuilder("");
+			genCallCode(temp, st, node);
+			code = temp.toString();
 		}
 		else{
 			switch (node.getVal()){
