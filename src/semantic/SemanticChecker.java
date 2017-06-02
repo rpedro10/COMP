@@ -71,6 +71,10 @@ public class SemanticChecker {
     				symbolTable.insertChildTable(ifTable);
     				runSemanticCheck(child,ifTable);
     				//Criar nova tabela e preencher e depois adicionar a tabela function
+    			}else if(child.getId().equals("Else")) {
+    				Table elseTable = new Table(symbolTable);
+    				runSemanticCheck(child,elseTable);
+    				symbolTable.insertChildTable(elseTable);
     			}else if(child.getId().equals("While")){
     				Table whileTable = new Table(symbolTable);
     				runSemanticCheck(child,whileTable);
@@ -83,6 +87,7 @@ public class SemanticChecker {
     		}
     		break;
     	case "If":
+    	case "Else":
     		for(int i=0; i < hr.getChildren().length; i++){
     			child=hr.getChild(i);
 	    		if(child.getId().equals("Exprtest")){
