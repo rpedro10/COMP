@@ -68,11 +68,13 @@ public class SemanticChecker {
     				addAssign(child, symbolTable);
     			}else if(child.getId().equals("If")){
     				Table ifTable = new Table(symbolTable);
+    				symbolTable.insertChildTable(ifTable);
     				runSemanticCheck(child,ifTable);
     				//Criar nova tabela e preencher e depois adicionar a tabela function
     			}else if(child.getId().equals("While")){
     				Table whileTable = new Table(symbolTable);
     				runSemanticCheck(child,whileTable);
+    				symbolTable.insertChildTable(whileTable);
     				//Criar nova tabela e preencher e depois adicionar a tabela function
     			}else if(child.getId().equals("Call")){
     				//isto pode estar aqui, ou é só no assign?
