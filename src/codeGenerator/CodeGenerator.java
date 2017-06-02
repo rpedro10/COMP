@@ -252,9 +252,7 @@ public class CodeGenerator {
 						break;
 					case "Id":
 						argBuffer = argBuffer + "I;";
-						Symbol s = st.lookup(arg.getVal());
-						int ssPosition = st.getVariables().indexOf(s) - (params + locals);
-						jvm.append("iload_"+ssPosition+"\n");
+						jvm.append(varLoad(arg.getVal(), params + locals, st));
 						break;
 					}
 				}
@@ -263,6 +261,17 @@ public class CodeGenerator {
 				}
 				jvm.append("invokestatic io/"+node.getChild(1).getVal()+"("+argBuffer+")V\n");
 			}
+		}
+	}
+	
+	public String varLoad(String name, int offset, Table st){
+		Symbol s = st.lookup(name);
+		if(st.isGlobal(s))
+			return "getstatic " +st.getModuleName()+"/"+s.getName()+" I\n";
+		else
+		{
+			int position = st.getVariables().indexOf(s) - offset;
+			return "iload_"+position+"\n";
 		}
 	}
 	
@@ -282,15 +291,7 @@ public class CodeGenerator {
 					else
 						S1 = "iconst_"+numInt+"\n";
 				}else{
-					Symbol ss = st.lookup(arraysize);
-					if(st.isGlobal(ss)){
-						S1 = "getstatic "+st.getModuleName()+"/"+ss.getName()+" I\n";
-					}
-					else{
-						int ssPosition = st.getVariables().indexOf(ss) - (params + locals);
-						S1 = "iload_"+ssPosition+"\n";
-					}
-					
+					S1 = varLoad(arraysize, params + locals, st);
 				}
 				S1 = S1 + "newarray int\n";
 				jvm.append(S1+S2);
@@ -314,14 +315,7 @@ public class CodeGenerator {
 				else
 					S1 = S1+ "iconst_"+numInt+"\n";
 			}catch (NumberFormatException e){
-				Symbol ss = st.lookup(val);
-				if(st.isGlobal(ss)){
-					S1 = S1 + "getstatic "+st.getModuleName()+"/"+ss.getName()+" I\n";
-				}
-				else{
-					int ssPosition = st.getVariables().indexOf(ss) - (params + locals);
-					S1 = S1 + "iload_"+ssPosition+"\n";
-				}
+				S1 = S1 + varLoad(val, params + locals, st);
 			}
 			S2 = "iastore\n";
 			S1 = S1 + genRHSCode(st, node.getChild(1), params + locals);
@@ -333,13 +327,7 @@ public class CodeGenerator {
 		String code = "";
 		if(node.getId().equals("Id")){
 			String val = node.getVal();
-			Symbol s = st.lookup(val);
-			if(st.isGlobal(s))
-				code = "getstatic "+st.getModuleName()+"/"+s.getName()+" I\n";
-			else{
-				int sp = st.getVariables().indexOf(s) - offset;
-				code = "iload_"+sp+"\n";
-			}
+			code = varLoad(val, offset, st);
 		} else if(node.getId().equals("Integer")){
 			String val = node.getVal();
 			int numVal = Integer.parseInt(val);
@@ -361,13 +349,7 @@ public class CodeGenerator {
 				else
 					code = "iconst_"+numInt+"\n" + code;
 			}catch (NumberFormatException e){
-				Symbol ss = st.lookup(val);
-				if(st.isGlobal(ss))
-					code = "getstatic "+st.getModuleName()+"/"+ss.getName()+" I\n" + code;
-				else{
-					int ssPosition = st.getVariables().indexOf(ss) - offset;
-					code = "iload_"+ssPosition+"\n" + code;
-				}
+				code = varLoad(val, offset, st) + code;
 			}
 			code = isGlobal ? "getstatic "+st.getModuleName()+"/"+s.getName()+" [I\n" : "aload_"+position+"\n"+code;
 		}
@@ -389,13 +371,7 @@ public class CodeGenerator {
 			for(HIRTree arg : node.getChildren()){
 				String val = arg.getVal();
 				if(arg.getId().equals("Id")){
-					Symbol s = st.lookup(val);
-					if(st.isGlobal(s))
-						code = "getstatic "+st.getModuleName()+"/"+s.getName()+" I\n"+code;
-					else{
-						int sp = st.getVariables().indexOf(s) - offset;
-						code = "iload_"+sp+"\n" + code;
-					}
+					code = varLoad(val, offset, st) + code;
 				}else if(arg.getId().equals("Integer")){
 					int numVal = Integer.parseInt(val);
 					if(numVal > 5)
@@ -413,13 +389,7 @@ public class CodeGenerator {
 						else
 							code = "iconst_"+numVal+"\n" + code;
 					}catch(NumberFormatException e){
-						Symbol s = st.lookup(arg.getChild(1).getVal());
-						if(st.isGlobal(s))
-							code = "getstatic "+st.getModuleName()+"/"+s.getName()+" I\n"+code;
-						else{
-							int sp = st.getVariables().indexOf(s) - offset;
-							code = "iload_"+sp+"\n" + code;
-						}
+						code = varLoad(arg.getChild(1).getVal(), offset, st) + code;
 					}
 					
 					Symbol s = st.lookup(arg.getChild(0).getVal());
