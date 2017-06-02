@@ -86,6 +86,34 @@ public class Table {
 		   return -1;
    }
    
+   public String getModuleName(){
+	   Table aux = this;
+	   while(aux.parent != null)
+		   aux = aux.parent;
+	   return aux.tbl.get(0).getName();
+   }
+   
+   public boolean isExternal(Symbol s){
+	   if(tbl.contains(s))
+		   return false;
+	   else{
+		   if(parent.lookup(s.getName()) != null)
+			   return true;
+		   else
+			   return false;
+	   }
+   }
+   
+   public boolean isGlobal(Symbol s){
+	   Table aux = parent;
+	   while(aux.parent != null)
+		   aux = aux.parent;
+	   if(aux.tbl.contains(s))
+		   return true;
+	   else
+		   return false;
+   }
+   
    public void dump(String prefix){
 	   for(Symbol s: tbl){
 		   System.out.println(prefix + s.getType() + " : " + s.getName());
