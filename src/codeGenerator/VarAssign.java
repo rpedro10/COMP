@@ -37,11 +37,35 @@ public class VarAssign {
 	
 	public void subOptimalAssign(){
 		int i = 0;
+		String retBuffer = null;
 		for(Symbol s : symbolTable.getVariables()){
-			if(!s.getType().equals("function name")){
-				assignments.add(new StackVarPair(s.getName(),i,false));
-				i++;
+			switch (s.getType()){
+				case "return":
+					retBuffer = s.getName();
+					break;
+				case "parameter int":
+				case "parameter array":
+					assignments.add(new StackVarPair(s.getName(),i,false));
+					i++;
+					break;
+				case "int":
+				case "array":
+					if(retBuffer != null){
+						assignments.add(new StackVarPair(retBuffer,i,false));
+						i++;
+						retBuffer = null;
+					}
+					assignments.add(new StackVarPair(s.getName(),i,false));
+					i++;
+					break;
+				default:
+					break;
 			}
+		}
+		if(retBuffer != null){
+			assignments.add(new StackVarPair(retBuffer,i,false));
+			i++;
+			retBuffer = null;
 		}
 		maxAssig = i - 1;
 		if(symbolTable.getChildTables().size() > 0)
@@ -63,7 +87,7 @@ public class VarAssign {
 			i++;
 		}
 		if((i - 1) > maxAssig)
-			maxAssig = i;
+			maxAssig = i - 1;
 		if(t.getChildTables().size() > 0){
 			for(Table ts : symbolTable.getChildTables()){
 				subBlockAssign(ts, i);
