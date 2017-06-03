@@ -141,6 +141,20 @@ class SimpleNode implements Node {
       		makeChild = false;
       	}
       	break;
+      case ParserTreeConstants.JJTRETURN:
+    	  hr.setContents("Return", null);
+    	  if(children.length > 2){
+    		  semantic.HIRTree child = new semantic.HIRTree(hr);
+    		  SimpleNode aux = (SimpleNode)children[0];
+    		  child.setContents("Array", aux.val);
+    		  hr.addChild(child);
+    		  child = new semantic.HIRTree(hr);
+    		  aux = (SimpleNode)children[2];
+    		  child.setContents("Id", aux.val);
+    		  hr.addChild(child);
+    		  return;
+    	  }
+    	  break;
       default:
     	//System.out.println(toString(prefix));
     	hr.setId(toString());
