@@ -100,43 +100,110 @@ public class CodeGenerator {
 	}
 	
 	public void genIfElseCode(StringBuilder jvm, Table ifTbl, Table elseTbl, HIRTree ifOp, HIRTree elseOp, int label){
-		if(elseTbl == null){
-			String jmp = "";
-			for(HIRTree comp : ifOp.getChild(0).getChildren()){
-				if(comp.getId().equals("Integer")){
-					int numInt = Integer.parseInt(comp.getVal());
-					if(numInt > 5)
-						jmp = jmp + "bipush " + numInt+"\n";
-					else
-						jmp = jmp + "iconst_"+numInt+"\n";
-				}else{
-					jmp = jmp + varLoad(comp.getVal(), ifTbl);
-				}
+	
+		StringBuilder jmp = new StringBuilder("");
+		for(HIRTree comp : ifOp.getChild(0).getChildren()){
+			if(comp.getId().equals("Integer")){
+				int numInt = Integer.parseInt(comp.getVal());
+				if(numInt > 5)
+					jmp.append("bipush " + numInt+"\n");
+				else
+					jmp.append("iconst_"+numInt+"\n");
+			}else{
+				jmp.append(varLoad(comp.getVal(), ifTbl));
 			}
-			jmp = jmp + "isub\n";
-			//if (5 > 2) --> 5 - 2 > 0 ? ---> iload5 iload 2 isub
-			switch (ifOp.getChild(0).getVal()){
-				case ">":
-					jmp = jmp + "ifle ";
-					break;
-				case ">=":
-					jmp = jmp + "iflt ";
-					break;
-				case "<":
-					jmp = jmp + "ifge ";
-					break;
-				case "<=":
-					jmp = jmp + "ifgt ";
-					break;
-				case "==":
-					jmp = jmp + "ifne ";
-					break;
-				case "!=":
-					jmp = jmp + "ifeq ";
-					break;
-			}
-			jmp = jmp + "label"+label+"\n";
 		}
+		jmp.append("isub\n");
+		//if (5 > 2) --> 5 - 2 > 0 ? ---> iload5 iload 2 isub
+		switch (ifOp.getChild(0).getVal()){
+			case ">":
+				jmp.append("ifle ");
+				break;
+			case ">=":
+				jmp.append("iflt ");
+				break;
+			case "<":
+				jmp.append("ifge ");
+				break;
+			case "<=":
+				jmp.append("ifgt ");
+				break;
+			case "==":
+				jmp.append("ifne ");
+				break;
+			case "!=":
+				jmp.append("ifeq ");
+				break;
+		}
+		jmp.append("label"+label+"\n");
+		int tblcounter = 0, i = 1;
+		while(i < ifOp.getChildren().length){
+			HIRTree operation = ifOp.getChild(i);
+			switch (operation.getId()){
+			case "Call":
+				genCallCode(jmp, ifTbl, operation);
+				break;
+			case "Assign":
+				genAssignCode(jmp, ifTbl, operation);
+				break;
+			case "If":
+				try{
+					HIRTree elseBlock2 = ifOp.getChild(i + 1);
+					if(elseBlock2.getId().equals("Else")){
+						Table ifTbl2 = ifTbl.getChild(tblcounter);
+						Table elseTbl2 = ifTbl.getChild(tblcounter + 1);
+						genIfElseCode(jmp, ifTbl2, elseTbl2, operation, elseBlock2, (tblcounter+1)*10);
+						i++;
+						tblcounter += 2;
+					}
+					else{
+						Table ifTbl2 = ifTbl.getChild(tblcounter);
+						genIfElseCode(jmp, ifTbl2, null, operation, null, (tblcounter+1)*10);
+						tblcounter++;
+					}
+				}catch(ArrayIndexOutOfBoundsException e){}
+				break;
+			}
+			i++;
+		}
+		if(elseTbl != null){
+			jmp.append("goto label"+(label + 1)+"\nlabel"+label+":\n");
+			tblcounter = 0; 
+			i = 0;
+			while(i < elseOp.getChildren().length){
+				HIRTree operation = elseOp.getChild(i);
+				switch (operation.getId()){
+				case "Call":
+					genCallCode(jmp, elseTbl, operation);
+					break;
+				case "Assign":
+					genAssignCode(jmp, elseTbl, operation);
+					break;
+				case "If":
+					try{
+						HIRTree elseBlock2 = elseOp.getChild(i + 1);
+						if(elseBlock2.getId().equals("Else")){
+							Table ifTbl2 = elseTbl.getChild(tblcounter);
+							Table elseTbl2 = elseTbl.getChild(tblcounter + 1);
+							genIfElseCode(jmp, ifTbl2, elseTbl2, operation, elseBlock2, (tblcounter+2)*10);
+							i++;
+							tblcounter += 2;
+						}
+						else{
+							Table ifTbl2 = elseTbl.getChild(tblcounter);
+							genIfElseCode(jmp, ifTbl2, null, operation, null, (tblcounter+2)*10);
+							tblcounter++;
+						}
+					}catch(ArrayIndexOutOfBoundsException e){}
+					break;
+				}
+				i++;
+			}
+			jmp.append("label"+(label+1)+":\n");
+		}else{
+			jmp.append("label"+label+":\n");
+		}
+		jvm.append(jmp.toString());
 	}
 	
 	/*Iniciar os imports e nome do modulo*/
@@ -366,12 +433,15 @@ public class CodeGenerator {
 				jvm.append(S1+S2);
 			}
 			else{
-				S2 = isGlobal ? "putstatic "+st.getModuleName()+"/"+s.getName()+" I\n" : "istore_"+position+"\n";
-				S1 = genRHSCode(st, node.getChild(1));
-				jvm.append(S1 + S2);
+				if(!matchPattern(jvm,isGlobal, s.getName(), node.getChild(1))){
+					S2 = isGlobal ? "putstatic "+st.getModuleName()+"/"+s.getName()+" I\n" : "istore_"+position+"\n";
+					S1 = genRHSCode(st, node.getChild(1));
+					jvm.append(S1 + S2);
+				}
 			}
 		}
 		else{
+			
 			Symbol s = st.lookup(node.getChild(0).getChild(0).getVal());
 			boolean isGlobal = st.isGlobal(s);
 			int position = isGlobal ? 0 : assigs.getStackNumber(s.getName());
@@ -389,6 +459,28 @@ public class CodeGenerator {
 			S2 = "iastore\n";
 			S1 = S1 + genRHSCode(st, node.getChild(1));
 			jvm.append(S1 + S2);
+		}
+	}
+	
+	public boolean matchPattern(StringBuilder jvm, boolean isGlobal, String val, HIRTree op){
+		if(isGlobal)
+			return false;
+		else{
+			if(!op.getVal().equals("+") && !op.getVal().equals("-"))
+				return false;
+			else{
+				if(op.getChild(0).getVal().equals(val) && op.getChild(1).getId().equals("Integer")){
+					jvm.append("iinc "+assigs.getStackNumber(val)+" ");
+					int num = Integer.parseInt(op.getChild(1).getVal());
+					if(op.getVal().equals("-"))
+						num = -1*num;
+					jvm.append(num + "\n");
+					return true;
+				}
+				else{
+					return false;
+				}
+			}
 		}
 	}
 	
