@@ -116,8 +116,11 @@ class SimpleNode implements Node {
         	break;
       case ParserTreeConstants.JJTRHS:
     	if(this.val !="Undefined"){
-    		//System.out.println(prefix+this.val);
-    		hr.setContents("Arith", this.val);
+    		if(this.val.equals(".size")){
+        		hr.setContents("SizeAccess", null);
+        	}
+    		else
+    			hr.setContents("Arith", this.val);
     	}
     	else{
     		prefix = prefix.substring(0, prefix.length()-1);

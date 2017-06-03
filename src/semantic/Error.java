@@ -9,6 +9,8 @@ public class Error {
 	String mensagem;
 	int line;
 
+	
+
   
 	public Error (String var, int linha, String msg) {
 	    line = linha;

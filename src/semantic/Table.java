@@ -19,6 +19,8 @@ public class Table {
     
     public Table getChild(int index){return children.get(index);}
     
+    public ArrayList<Table> getChildTables(){return children;}
+    
     public ArrayList<Symbol> getVariables(){return tbl;}
     
     public void insert(String name,String type, boolean initialized) {
