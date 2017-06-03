@@ -88,6 +88,11 @@ public class CodeGenerator {
 							}
 						}catch(ArrayIndexOutOfBoundsException e){}
 						break;
+					case "While":
+						Table whileTbl = st.getChild(tableCounter);
+						genWhileCode(jvm, whileTbl, operation, tableCounter);
+						tableCounter++;
+;						break;
 					}
 					i++;
 				}
@@ -97,6 +102,82 @@ public class CodeGenerator {
 				else
 					jvm.append("iload "+retIndex+"\nireturn\n.end method\n");
 		}
+	}
+	
+	public void genWhileCode(StringBuilder jvm, Table whileTbl, HIRTree op, int label){
+		StringBuilder jmp = new StringBuilder("");
+		jmp.append("loop"+label+":\n");
+		for(HIRTree comp : op.getChild(0).getChildren()){
+			if(comp.getId().equals("Integer")){
+				int numInt = Integer.parseInt(comp.getVal());
+				if(numInt > 5)
+					jmp.append("bipush " + numInt+"\n");
+				else
+					jmp.append("iconst_"+numInt+"\n");
+			}else{
+				jmp.append(varLoad(comp.getVal(), whileTbl));
+			}
+		}
+		jmp.append("isub\n");
+		switch (op.getChild(0).getVal()){
+		case ">":
+			jmp.append("ifle ");
+			break;
+		case ">=":
+			jmp.append("iflt ");
+			break;
+		case "<":
+			jmp.append("ifge ");
+			break;
+		case "<=":
+			jmp.append("ifgt ");
+			break;
+		case "==":
+			jmp.append("ifne ");
+			break;
+		case "!=":
+			jmp.append("ifeq ");
+			break;
+		}
+		jmp.append("label"+label+"\n");
+		int tblcounter = 0, i = 1;
+		while(i < op.getChildren().length){
+			HIRTree operation = op.getChild(i);
+			switch (operation.getId()){
+			case "Call":
+				genCallCode(jmp, whileTbl, operation);
+				break;
+			case "Assign":
+				genAssignCode(jmp, whileTbl, operation);
+				break;
+			case "If":
+				try{
+					HIRTree elseBlock2 = op.getChild(i + 1);
+					if(elseBlock2.getId().equals("Else")){
+						Table ifTbl2 = whileTbl.getChild(tblcounter);
+						Table elseTbl2 = whileTbl.getChild(tblcounter + 1);
+						genIfElseCode(jmp, ifTbl2, elseTbl2, operation, elseBlock2, (tblcounter+1)*10);
+						i++;
+						tblcounter += 2;
+					}
+					else{
+						Table ifTbl2 = whileTbl.getChild(tblcounter);
+						genIfElseCode(jmp, ifTbl2, null, operation, null, (tblcounter+1)*10);
+						tblcounter++;
+					}
+				}catch(ArrayIndexOutOfBoundsException e){}
+				break;
+			case "While":
+				Table whileTbl2 = whileTbl.getChild(tblcounter);
+				genWhileCode(jvm, whileTbl2, operation, tblcounter);
+				tblcounter++;
+				break;
+			}
+			i++;
+		}
+		jmp.append("goto loop"+label+"\nlabel"+label+":\n");
+		jvm.append(jmp.toString());
+		
 	}
 	
 	public void genIfElseCode(StringBuilder jvm, Table ifTbl, Table elseTbl, HIRTree ifOp, HIRTree elseOp, int label){
@@ -114,7 +195,6 @@ public class CodeGenerator {
 			}
 		}
 		jmp.append("isub\n");
-		//if (5 > 2) --> 5 - 2 > 0 ? ---> iload5 iload 2 isub
 		switch (ifOp.getChild(0).getVal()){
 			case ">":
 				jmp.append("ifle ");
@@ -163,6 +243,11 @@ public class CodeGenerator {
 					}
 				}catch(ArrayIndexOutOfBoundsException e){}
 				break;
+			case "While":
+				Table whileTbl2 = ifTbl.getChild(tblcounter);
+				genWhileCode(jvm, whileTbl2, operation, tblcounter);
+				tblcounter++;
+				break;
 			}
 			i++;
 		}
@@ -195,6 +280,11 @@ public class CodeGenerator {
 							tblcounter++;
 						}
 					}catch(ArrayIndexOutOfBoundsException e){}
+					break;
+				case "While":
+					Table whileTbl2 = elseTbl.getChild(tblcounter);
+					genWhileCode(jvm, whileTbl2, operation, tblcounter);
+					tblcounter++;
 					break;
 				}
 				i++;
