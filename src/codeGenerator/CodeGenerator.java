@@ -55,7 +55,7 @@ public class CodeGenerator {
 					retIndex = getReturnVarIndex(st);
 				/*Inicializar nome de função e stack*/
 				setFunctionHeader(jvm, st, paramOffset, isVoid);
-				limitStack(jvm,ast);
+				limitStack(jvm,ast,st);
 				if(assigs.maxAssig > 0){
 					jvm.append(".limit locals "+(assigs.maxAssig + 1)+"\n");
 				}
@@ -368,7 +368,7 @@ public class CodeGenerator {
 		}	
 	}
 	
-	public void limitStack(StringBuilder jvm, HIRTree ast){
+	public void limitStack(StringBuilder jvm, HIRTree ast, Table st){
 		int max = 0, curr = 0;
 		for(HIRTree op : ast.getChildren()){
 			if(op.getId().equals("Assign")){
@@ -380,6 +380,8 @@ public class CodeGenerator {
 						curr += 3;
 					else
 						curr += 2;
+				}else if(op.getChild(1).getId().equals("SizeAccess")){
+					curr += 2;
 				}else{
 					if(op.getChild(1).getId().equals("ArraySize")){
 						curr += 2;
@@ -388,6 +390,8 @@ public class CodeGenerator {
 						curr++;
 					}
 				}
+				if(st.lookup(op.getChild(0).getVal()).getType().contains("array") && !op.getChild(1).getId().equals("ArraySize"))
+					curr = 4;
 			}
 			else if(op.getId().equals("Call")){
 				if(op.getChild(op.getChildren().length - 1).getChildren() != null)
@@ -509,18 +513,38 @@ public class CodeGenerator {
 			int position = isGlobal ? 0 : assigs.getStackNumber(s.getName());
 			if(s.getType().equals("array")){
 				S2 = isGlobal ? "putstatic "+st.getModuleName()+"/"+s.getName()+" [I\n" : "astore_"+position+"\n";
-				String arraysize = node.getChild(1).getChild(0).getVal();
-				if(node.getChild(1).getChild(0).getId().equals("Integer")){
-					int numInt = Integer.parseInt(arraysize);
-					if(numInt > 5)
-						S1 = "bipush " + numInt+"\n";
-					else
-						S1 = "iconst_"+numInt+"\n";
-				}else{
-					S1 = varLoad(arraysize, st);
+				if(node.getChild(1).getId().equals("ArraySize")){
+					String arraysize = node.getChild(1).getChild(0).getVal();
+					if(node.getChild(1).getChild(0).getId().equals("Integer")){
+						int numInt = Integer.parseInt(arraysize);
+						if(numInt > 5)
+							S1 = "bipush " + numInt+"\n";
+						else
+							S1 = "iconst_"+numInt+"\n";
+					}else{
+						S1 = varLoad(arraysize, st);
+					}
+					S1 = S1 + "newarray int\n";
+					jvm.append(S1+S2);
 				}
-				S1 = S1 + "newarray int\n";
-				jvm.append(S1+S2);
+				else{
+					String aux = isGlobal ? ("getstatic"+st.getModuleName()+"/"+s.getName()+" [I\n") : ("aload_"+position+"\n"); 
+					S1 =  aux;
+					S1 = S1 + "arraylength\niconst_1\nisub\ninitLoop"+position+":\n";
+					S1 = S1 + "iflt endInit"+position+"\n";
+					S1 = S1 + "dup\n"+aux+"swap\n";
+					if(node.getChild(1).getId().equals("Integer")){
+						int numInt = Integer.parseInt(node.getChild(1).getVal());
+						if(numInt > 5)
+							S1 = S1 + "bipush " + numInt+"\n";
+						else
+							S1 = S1 + "iconst_"+numInt+"\n";
+					}
+					else
+						S1 = S1 + varLoad(node.getChild(1).getVal(),st);
+					S1 = S1 + S2 +"iconst_1\nisub\ngoto initloop"+position+"\nendInit"+position+":\npop\n";
+					jvm.append(S1);
+				}
 			}
 			else{
 				if(!matchPattern(jvm,isGlobal, s.getName(), node.getChild(1))){
@@ -555,7 +579,7 @@ public class CodeGenerator {
 	public boolean matchPattern(StringBuilder jvm, boolean isGlobal, String val, HIRTree op){
 		if(isGlobal)
 			return false;
-		else{
+		else if(op.getVal() != null){
 			if(!op.getVal().equals("+") && !op.getVal().equals("-"))
 				return false;
 			else{
@@ -572,6 +596,8 @@ public class CodeGenerator {
 				}
 			}
 		}
+		else
+			return false;
 	}
 	
 	public String genRHSCode(Table st, HIRTree node){
@@ -608,6 +634,13 @@ public class CodeGenerator {
 			StringBuilder temp = new StringBuilder("");
 			genCallCode(temp, st, node);
 			code = temp.toString();
+		}
+		else if(node.getId() == "SizeAccess"){
+			Symbol s = st.lookup(node.getChild(0).getVal());
+			boolean isGlobal = st.isGlobal(s);
+			int position = isGlobal ? 0 : assigs.getStackNumber(s.getName());
+			code = "arraylength\n";
+			code = isGlobal ? "getstatic "+st.getModuleName()+"/"+s.getName()+" [I\n" : "aload_"+position+"\n"+code;
 		}
 		else{
 			switch (node.getVal()){
