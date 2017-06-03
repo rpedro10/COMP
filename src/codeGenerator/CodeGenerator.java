@@ -14,6 +14,7 @@ public class CodeGenerator {
 	protected Table symbolTable;
 	protected String arrayIniters;
 	protected VarAssign assigs;
+	private String typeReturn;
 	
 	public CodeGenerator(HIRTree tree, Table symbolTable){
 		this.tree = tree;
@@ -51,8 +52,11 @@ public class CodeGenerator {
 				assigs = new VarAssign(ast, st);
 				assigs.subOptimalAssign();
 				assigs.dump();
-				if(!isVoid)
+				typeReturn = "void";
+				if(!isVoid){
 					retIndex = getReturnVarIndex(st);
+					typeReturn = ast.getChild(0).getChild(0).getId();
+				}
 				/*Inicializar nome de função e stack*/
 				setFunctionHeader(jvm, st, paramOffset, isVoid);
 				limitStack(jvm,ast,st);
@@ -86,21 +90,30 @@ public class CodeGenerator {
 								genIfElseCode(jvm, ifTbl, null, operation, null, tableCounter);
 								tableCounter++;
 							}
-						}catch(ArrayIndexOutOfBoundsException e){}
+						}catch(ArrayIndexOutOfBoundsException e){
+							Table ifTbl = st.getChild(tableCounter);
+							genIfElseCode(jvm, ifTbl, null, operation, null, tableCounter);
+							tableCounter++;
+						}
 						break;
 					case "While":
 						Table whileTbl = st.getChild(tableCounter);
 						genWhileCode(jvm, whileTbl, operation, tableCounter);
 						tableCounter++;
-;						break;
+						break;
 					}
 					i++;
 				}
 				/*Colocar valores de retorno*/
 				if(isVoid)
 					jvm.append("return\n.end method\n");
-				else
-					jvm.append("iload "+retIndex+"\nireturn\n.end method\n");
+				else{
+					if(typeReturn.equals("Array"))
+						jvm.append("aload "+retIndex+"\nareturn\n.end method\n");
+					else
+						jvm.append("iload "+retIndex+"\nireturn\n.end method\n");
+				}
+					
 		}
 	}
 	
@@ -363,8 +376,12 @@ public class CodeGenerator {
 			}
 			if(isVoid)
 				jvm.append(")V\n");
-			else
-				jvm.append(")I\n");
+			else{
+				if(typeReturn.equals("Array"))
+					jvm.append(")[I\n");
+				else
+					jvm.append(")I\n");
+			}
 		}	
 	}
 	
@@ -382,6 +399,11 @@ public class CodeGenerator {
 						curr += 2;
 				}else if(op.getChild(1).getId().equals("SizeAccess")){
 					curr += 2;
+				}else if(op.getChild(1).getId().equals("Call")){
+					HIRTree aux = op.getChild(1);
+					aux = aux.getChild(aux.getChildren().length - 1);
+					if(aux.getChildren() != null)
+						curr = aux.getChildren().length;
 				}else{
 					if(op.getChild(1).getId().equals("ArraySize")){
 						curr += 2;
@@ -390,8 +412,10 @@ public class CodeGenerator {
 						curr++;
 					}
 				}
-				if(st.lookup(op.getChild(0).getVal()).getType().contains("array") && !op.getChild(1).getId().equals("ArraySize"))
-					curr = 4;
+				try{
+					if(st.lookup(op.getChild(0).getVal()).getType().contains("array") && !op.getChild(1).getId().equals("ArraySize"))
+						curr = 4;
+				}catch(NullPointerException e){}
 			}
 			else if(op.getId().equals("Call")){
 				if(op.getChild(op.getChildren().length - 1).getChildren() != null)
@@ -420,23 +444,23 @@ public class CodeGenerator {
 	}
 	
 	public int getParamStart(Table st, boolean isVoid){
-		if(!isVoid){
-			if(st.getSymbol(2).getType().split(" ")[0].equals("parameter"))
-				return 2;
-			else
-				return 0;
-		}
-		else{ 
-			try{
+		try{
+			if(!isVoid){
+				if(st.getSymbol(2).getType().split(" ")[0].equals("parameter"))
+					return 2;
+				else
+					return 0;
+			}
+			else{ 		
 				if(st.getSymbol(1).getType().split(" ")[0].equals("parameter")){
-						return 1;
+					return 1;
 				}
 				else
 					return 0;
 			}
-			catch(IndexOutOfBoundsException e){
-				return 0;
-			}
+		}
+		catch(IndexOutOfBoundsException e){
+			return 0;
 		}
 	}
 	
@@ -530,7 +554,7 @@ public class CodeGenerator {
 				else{
 					String aux = isGlobal ? ("getstatic"+st.getModuleName()+"/"+s.getName()+" [I\n") : ("aload_"+position+"\n"); 
 					S1 =  aux;
-					S1 = S1 + "arraylength\niconst_1\nisub\ninitLoop"+position+":\n";
+					S1 = S1 + "arraylength\niconst_1\nisub\ndup\ninitLoop"+position+":\n";
 					S1 = S1 + "iflt endInit"+position+"\n";
 					S1 = S1 + "dup\n"+aux+"swap\n";
 					if(node.getChild(1).getId().equals("Integer")){
@@ -542,9 +566,38 @@ public class CodeGenerator {
 					}
 					else
 						S1 = S1 + varLoad(node.getChild(1).getVal(),st);
-					S1 = S1 + S2 +"iconst_1\nisub\ngoto initloop"+position+"\nendInit"+position+":\npop\n";
+					S1 = S1 + "iastore\niconst_1\nisub\ndup\ngoto initLoop"+position+"\nendInit"+position+":\npop\n";
 					jvm.append(S1);
 				}
+			}else if(s.getType().equals("return") && node.getChild(1).getId().equals("ArraySize")){
+				String arraysize = node.getChild(1).getChild(0).getVal();
+				if(node.getChild(1).getChild(0).getId().equals("Integer")){
+					int numInt = Integer.parseInt(arraysize);
+					if(numInt > 5)
+						S1 = "bipush " + numInt+"\n";
+					else
+						S1 = "iconst_"+numInt+"\n";
+				}else{
+					S1 = varLoad(arraysize, st);
+				}
+				S1 = S1 + "newarray int\n"+"astore_"+position+"\n";
+				jvm.append(S1);
+			}else if(s.getType().equals("return") && typeReturn.equals("Array") && (node.getChild(1).getVal() != null)){
+				S1 = "aload_"+position+"\n";
+				S1 = S1 + "arraylength\niconst_1\nisub\ninitLoop"+position+":\n";
+				S1 = S1 + "iflt endInit"+position+"\n";
+				S1 = S1 + "dup\naload_"+position+"\nswap\n";
+				if(node.getChild(1).getId().equals("Integer")){
+					int numInt = Integer.parseInt(node.getChild(1).getVal());
+					if(numInt > 5)
+						S1 = S1 + "bipush " + numInt+"\n";
+					else
+						S1 = S1 + "iconst_"+numInt+"\n";
+				}
+				else
+					S1 = S1 + varLoad(node.getChild(1).getVal(),st);
+				S1 = S1 + "iastore\niconst_1\nisub\ngoto initloop"+position+"\nendInit"+position+":\npop\n";
+				jvm.append(S1);
 			}
 			else{
 				if(!matchPattern(jvm,isGlobal, s.getName(), node.getChild(1))){
@@ -635,7 +688,7 @@ public class CodeGenerator {
 			genCallCode(temp, st, node);
 			code = temp.toString();
 		}
-		else if(node.getId() == "SizeAccess"){
+		else if(node.getId().equals("SizeAccess")){
 			Symbol s = st.lookup(node.getChild(0).getVal());
 			boolean isGlobal = st.isGlobal(s);
 			int position = isGlobal ? 0 : assigs.getStackNumber(s.getName());

@@ -67,6 +67,7 @@ TOKEN : {
 | <FUNCTION: "function">
 | <MODULE: "module">
 | <SIZE: "size">
+| < DOTSIZE: ".size" >
 }
 
 TOKEN : {
@@ -144,11 +145,11 @@ void Stmt()#void: { }
 }
 void Call(): {}
 {
-	 Id() ( "." Id() )? <LPAR> ( ArgumentList() )? <RPAR>
+	 Id() ( ( "." Id() )? <LPAR> ( ArgumentList() )? <RPAR> ) | ".size"
 }
 void Assign(): { Token assign; }
 {
-	Lhs()#Array(>1) assign=< ASSIGN > { jjtThis.val = assign.image; }Rhs()<PVIRG>
+	Lhs()#Array(>1) assign=< ASSIGN > { jjtThis.val = assign.image; }(LOOKAHEAD(3) Rhs() | Call())<PVIRG>
 }
 void Lhs() #void : { }
 {

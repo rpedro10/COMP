@@ -4,18 +4,18 @@ public interface ParserTreeConstants
   public int JJTMODULE = 0;
   public int JJTDECLARATIONLIST = 1;
   public int JJTDECLARATION = 2;
-  public int JJTDECLARATIONRHS = 3;
-  public int JJTFUNCTION = 4;
-  public int JJTRETURN = 5;
-  public int JJTPARAMETERS = 6;
-  public int JJTVOID = 7;
-  public int JJTID = 8;
-  public int JJTINTEGER = 9;
-  public int JJTPARAM = 10;
-  public int JJTARRAYELEMENT = 11;
-  public int JJTCALL = 12;
-  public int JJTASSIGN = 13;
-  public int JJTARRAY = 14;
+  public int JJTARRAY = 3;
+  public int JJTDECLARATIONRHS = 4;
+  public int JJTFUNCTION = 5;
+  public int JJTRETURN = 6;
+  public int JJTPARAMETERS = 7;
+  public int JJTVOID = 8;
+  public int JJTID = 9;
+  public int JJTINTEGER = 10;
+  public int JJTPARAM = 11;
+  public int JJTARRAYELEMENT = 12;
+  public int JJTCALL = 13;
+  public int JJTASSIGN = 14;
   public int JJTRHS = 15;
   public int JJTARRAYACCESS = 16;
   public int JJTARRAYSIZE = 17;
@@ -25,13 +25,15 @@ public interface ParserTreeConstants
   public int JJTIF = 21;
   public int JJTELSE = 22;
   public int JJTARGUMENTLIST = 23;
-  public int JJTINDEX = 24;
+  public int JJTSTRING = 24;
+  public int JJTINDEX = 25;
 
 
   public String[] jjtNodeName = {
     "Module",
     "DeclarationList",
     "Declaration",
+    "Array",
     "DeclarationRHS",
     "Function",
     "Return",
@@ -43,7 +45,6 @@ public interface ParserTreeConstants
     "ArrayElement",
     "Call",
     "Assign",
-    "Array",
     "Rhs",
     "ArrayAccess",
     "ArraySize",
@@ -53,7 +54,8 @@ public interface ParserTreeConstants
     "If",
     "Else",
     "ArgumentList",
+    "String",
     "Index",
   };
 }
-/* JavaCC - OriginalChecksum=f050d7b976c0ad9040127aa919939178 (do not edit this line) */
+/* JavaCC - OriginalChecksum=6879ad2213fbd73c2a95b7f4c6559967 (do not edit this line) */

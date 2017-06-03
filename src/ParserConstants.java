@@ -47,15 +47,17 @@ public interface ParserConstants {
   /** RegularExpression Id. */
   int SIZE = 25;
   /** RegularExpression Id. */
-  int INTEGER = 26;
+  int DOTSIZE = 26;
   /** RegularExpression Id. */
-  int ID = 27;
+  int INTEGER = 27;
   /** RegularExpression Id. */
-  int LETTER = 28;
+  int ID = 28;
   /** RegularExpression Id. */
-  int DIGIT = 29;
+  int LETTER = 29;
   /** RegularExpression Id. */
-  int STRING = 30;
+  int DIGIT = 30;
+  /** RegularExpression Id. */
+  int STRING = 31;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -88,6 +90,7 @@ public interface ParserConstants {
     "\"function\"",
     "\"module\"",
     "\"size\"",
+    "\".size\"",
     "<INTEGER>",
     "<ID>",
     "<LETTER>",
