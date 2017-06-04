@@ -3,6 +3,8 @@ import java.util.ArrayList;
 
 public class SemanticChecker {
 	
+
+
 	private Table symbolTable;
 	private ArrayList<Error> error_list;
 	private int errorCount;
@@ -12,6 +14,7 @@ public class SemanticChecker {
 		errorCount = 0;
 		error_list = new ArrayList<Error>();
 	}
+	
 
 	public void runSemanticCheck(HIRTree hr,Table symbolTable){
 		HIRTree child;
@@ -46,7 +49,7 @@ public class SemanticChecker {
 							}else{
 								//retornar erro "var;" again
 								// var linha msg
-								Error rr = new Error(child.getChild(k).getVal(),1,"DeclarationList error, redeclaration ");
+								Error rr = new Error(child.getChild(k).getVal(),child.getChild(k).getLine(),"DeclarationList error, redeclaration of");
 								error_list.add(rr);
 								System.out.println("DeclarationList error, redeclaration " + child.getChild(k).getVal());
 							}
@@ -97,11 +100,11 @@ public class SemanticChecker {
 							//System.out.println(lookup.getName());
 							if(lookup == null){
 								//System.out.println("Variable " + subChild.getVal() + " not defined");
-								Error rr = new Error(subChild.getVal(),1,"Variable not defined ");
+								Error rr = new Error(subChild.getVal(),subChild.getLine(),"Variable not defined:");
 								error_list.add(rr);
 							}else if(!lookup.isInitialized()){
 								//erro\warning not initialized
-								Error rr = new Error(subChild.getVal(),1," WARNING: Variable not INITIALIZED");
+								Error rr = new Error(subChild.getVal(),subChild.getLine(),"Variable not intialized:");
 								error_list.add(rr);
 								System.out.println("Variable " + subChild.getVal() + " not initialized");
 							}
@@ -109,12 +112,12 @@ public class SemanticChecker {
 		    				Symbol lookup = symbolTable.lookup(subChild.getChild(0).getVal());
 							//System.out.println(lookup.getName());
 							if(lookup == null){
-								Error rr = new Error(subChild.getVal(),1,"Variable not defined ");
+								Error rr = new Error(subChild.getVal(),subChild.getLine(),"Variable not defined:");
 								error_list.add(rr);
 								//System.out.println("Variable " + subChild.getChild(0).getVal() + " not defined");
 							}else if(!lookup.isInitialized()){
 								//erro\warning not initialized
-								Error rr = new Error(subChild.getChild(0).getVal(),1," WARNING: Variable not INITIALIZED");
+								Error rr = new Error(subChild.getChild(0).getVal(),subChild.getChild(0).getLine()," Variable not INITIALIZED");
 								error_list.add(rr);
 								System.out.println("Variable " + subChild.getChild(0).getVal() + " not initialized");
 							}
@@ -147,23 +150,25 @@ public class SemanticChecker {
 		    				Symbol lookup = symbolTable.lookup(subChild.getVal());
 							//System.out.println(lookup.getName());
 							if(lookup == null){
-								Error rr = new Error(subChild.getVal(),1,"Variable not defined ");
+								Error rr = new Error(subChild.getVal(),subChild.getLine(),"Variable not defined ");
 								error_list.add(rr);
 								System.out.println("Variable " + subChild.getVal() + " not defined");
 							}else if(!lookup.isInitialized()){
 								//erro\warning not initialized
+								Error rr = new Error(subChild.getVal(),subChild.getLine(),"Variable not initialized ");
+								error_list.add(rr);
 								System.out.println("Variable " + subChild.getVal() + " not initialized");
 							}
 		    			}else if(subChild.getId().equals("Array")){
 		    				Symbol lookup = symbolTable.lookup(subChild.getChild(0).getVal());
 							//System.out.println(lookup.getName());
 							if(lookup == null){
-								Error rr = new Error(subChild.getVal(),1,"Variable not defined ");
+								Error rr = new Error(subChild.getChild(0).getVal(),subChild.getChild(0).getLine(),"Variable not defined:");
 								error_list.add(rr);
 								System.out.println("Variable " + subChild.getChild(0).getVal() + " not defined");
 							}else if(!lookup.isInitialized()){
 								//erro\warning not initialized
-								Error rr = new Error(subChild.getChild(0).getVal(),1," WARNING: Variable not INITIALIZED");
+								Error rr = new Error(subChild.getChild(0).getVal(),subChild.getChild(0).getLine()," WARNING: Variable not INITIALIZED");
 								error_list.add(rr);
 								System.out.println("Variable " + subChild.getChild(0).getVal() + " not initialized");
 							}
@@ -204,7 +209,7 @@ public class SemanticChecker {
 									symbolTable.insert(tree.getChild(i).getVal(), "array", false);
 									System.out.println("Define " + tree.getChild(i).getVal());
 								}else{
-									Error rr = new Error(tree.getChild(i).getVal(),1,"ArraySize must be greater than 0");
+									Error rr = new Error(tree.getChild(i).getVal(),tree.getChild(i).getLine(),"ArraySize must be greater than 0:");
 									error_list.add(rr);
 									System.out.println("ArraySize must be greater than 0");
 								}
@@ -234,10 +239,10 @@ public class SemanticChecker {
 							if(!lookup.getType().equals("int") && !lookup.getType().equals("parameter int")){
 								if(Integer.parseInt(tree.getChild(i+1).getChild(0).getVal())<=0)
 								System.out.println("ArraySize must be greater than 0");
-								Error rr = new Error(tree.getChild(i).getVal(),1,"ArraySize must be greater than 0");
+								Error rr = new Error(tree.getChild(i).getVal(),tree.getChild(i).getLine(),"ArraySize must be greater than 0");
 								error_list.add(rr);
 							}else{
-								Error rr = new Error(tree.getChild(i).getVal(),1,"Variable is not an array");
+								Error rr = new Error(tree.getChild(i).getVal(),tree.getChild(i).getLine(),"Variable is not an array");
 								error_list.add(rr);
 								System.out.println("Variable " + tree.getChild(i).getVal() + " is not an array");
 							}
@@ -250,31 +255,33 @@ public class SemanticChecker {
 					if(lookup == null){
 						//erro not defined;
 						System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not defined");
-						Error rr = new Error(tree.getChild(i).getVal(),1,"Variable is not an array");
+						Error rr = new Error(tree.getChild(i).getVal(),tree.getChild(i).getLine(),"Variable is not an array: ");
 						error_list.add(rr);
 					}else if(!lookup.getType().equals("array")  && !lookup.getType().equals("parameter array")){
 						System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not an array");
+						Error rr = new Error( tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine(),"Variable is not an array: ");
+						error_list.add(rr);
 					}else if(!lookup.isInitialized()){
 						//erro\warning not initialized
-						Error rr = new Error(tree.getChild(i).getChild(0).getVal(),1," WARNING: Variable not INITIALIZED");
+						Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine()," WARNING: Variable not INITIALIZED");
 						error_list.add(rr);
-						System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not initialized");
+						System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not initialized: ");
 					}
 				}
 			}else if(tree.getChild(i).getId().equals("Array")){
 				lookup = symbolTable.lookup(tree.getChild(i).getChild(0).getVal());
 				if(lookup == null){
 					//erro not defined;
-					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),1,"Variable not defined");
+					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine(),"Variable not defined");
 					error_list.add(rr);
 					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not defined");
 				}else if(!lookup.getType().equals("array")  && !lookup.getType().equals("parameter array")){
 					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not an array");
-					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),1,"Variable not an array");
+					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine(),"Variable not an array");
 					error_list.add(rr);
 				}else if(!lookup.isInitialized()){
 					//erro\warning not initialized
-					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),1," WARNING: Variable not INITIALIZED");
+					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine()," Variable not INITIALIZED: ");
 					error_list.add(rr);
 					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not initialized");
 				}
@@ -289,11 +296,11 @@ public class SemanticChecker {
 				//System.out.println(lookup.getName());
 				if(lookup == null){
 					System.out.println("Variable " + tree.getChild(i).getVal() + " not defined");
-					Error rr = new Error(tree.getChild(i).getVal(),1,"Variable not defined");
+					Error rr = new Error(tree.getChild(i).getVal(),tree.getChild(i).getLine(),"Variable not defined");
 					error_list.add(rr);
 				}else if(!lookup.isInitialized()){
 					//erro\warning not initialized
-					Error rr = new Error(tree.getChild(i).getVal(),1," WARNING: Variable not INITIALIZED");
+					Error rr = new Error(tree.getChild(i).getVal(),tree.getChild(i).getLine()," WARNING: Variable not INITIALIZED");
 					error_list.add(rr);
 					System.out.println("Variable " + tree.getChild(i).getVal() + " not initialized");
 				}
@@ -308,12 +315,12 @@ public class SemanticChecker {
 				//lookup
 				Symbol lookup = symbolTable.lookup(tree.getChild(i).getVal());
 				if(lookup == null){
-					Error rr = new Error(tree.getChild(i).getVal() ,1,"Variable not defined");
+					Error rr = new Error(tree.getChild(i).getVal() ,tree.getChild(i).getLine(),"Variable not defined");
 					error_list.add(rr);
 					System.out.println("Variable " + tree.getChild(i).getVal() + " not defined");
 				}else if(!lookup.isInitialized()){
 					//erro\warning not initialized
-					Error rr = new Error(tree.getChild(i).getVal(),1," WARNING: Variable not INITIALIZED");
+					Error rr = new Error(tree.getChild(i).getVal(),tree.getChild(i).getLine()," WARNING: Variable not INITIALIZED");
 					error_list.add(rr);
 					System.out.println("Variable " + tree.getChild(i).getVal() + " not initialized");
 				}
@@ -321,16 +328,16 @@ public class SemanticChecker {
 				Symbol lookup = symbolTable.lookup(tree.getChild(i).getChild(0).getVal());
 				if(lookup == null){
 					//erro not defined;
-					Error rr = new Error(tree.getChild(i).getVal() ,1,"Variable not defined");
+					Error rr = new Error(tree.getChild(i).getVal() ,tree.getChild(i).getLine(),"Variable not defined:");
 					error_list.add(rr);
 					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not defined");
 				}else if(!lookup.getType().equals("array")){
 					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not an array");
-					Error rr = new Error(tree.getChild(i).getChild(0).getVal() ,1," variable is not an array");
+					Error rr = new Error(tree.getChild(i).getChild(0).getVal() ,tree.getChild(i).getChild(0).getLine()," Variable is not an array:");
 					error_list.add(rr);
 				}else if(!lookup.isInitialized()){
 					//erro\warning not initialized
-					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),1," WARNING: variable is not INITIALIZED");
+					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine()," WARNING: variable is not INITIALIZED");
 					error_list.add(rr);
 					System.out.println("Variable " + tree.getChild(i).getChild(0).getVal() + " is not initialized");
 				}
@@ -452,10 +459,10 @@ public class SemanticChecker {
 				HIRNode[] children = tree.getChild(3).getChildren();
 				for(int i=0; i<children.length;i++){
 					if (symbolTable.lookup(children[i].getVal())!= null){
-						System.out.println("Print Variavel: " + children[i].getId() );
+						// System.out.println("Print Variavel: " + children[i].getId() );
 					}
 					else{
-						Error rr = new Error(children[i].getVal() ,1,"Variable not defined");
+						Error rr = new Error(children[i].getVal() ,children[i].getLine(),"Variable not defined:");
 						error_list.add(rr);
 						System.out.println(" Variavel: " + children[i].getVal() +" Nao existe (nao pode fazer print) ");
 					}
@@ -470,5 +477,14 @@ public class SemanticChecker {
 	
 	public Table getTable(){
 		return this.symbolTable;
+	}
+	
+	public ArrayList<Error> getError_list() {
+		return error_list;
+	}
+
+
+	public void setError_list(ArrayList<Error> error_list) {
+		this.error_list = error_list;
 	}
 }

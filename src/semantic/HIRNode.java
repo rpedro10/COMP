@@ -18,5 +18,6 @@ public interface HIRNode {
 	public String getVal();
 	
 	public void setContents(String  id, String val);
+	public int getLine();
 
 }

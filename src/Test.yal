@@ -5,14 +5,14 @@ module Test{
 	function a=main(N, B[]) {
 		a=3; //Comment
 		i=0;
-		b = [20];
+		b = [-2];
 		b[] = 10;
 		if(N > 30){
 			N = 30;
 		}else{
 			N = 15;
 		}
-		while(i < b.size){
+		while(i <k){
 			a = N * b[i];
 			i = i + 1;
 		}
