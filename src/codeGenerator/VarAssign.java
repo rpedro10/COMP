@@ -5,23 +5,7 @@ import semantic.Symbol;
 import semantic.HIRTree;
 public class VarAssign {
 	
-	protected class StackVarPair{
-		protected String var;
-		protected int stackPostion;
-		protected int[] lifetime;
-		//////////////////////////////////////////////
-		protected String getVar() {return var;}
-		protected void setVar(String var) {this.var = var;}
-		protected int getStackPostion() {return stackPostion;}
-		protected void setStackPostion(int stackPostion) {this.stackPostion = stackPostion;}
-		////////////////////////////////////////////////
-		protected StackVarPair(String var, int pos, boolean lft){
-			this.var = var;
-			this.stackPostion = pos;
-			if(lft)
-				this.lifetime = new int[2];
-		}
-	}
+	
 	
 	protected HIRTree function;
 	protected ArrayList<StackVarPair> assignments;
@@ -33,6 +17,86 @@ public class VarAssign {
 		symbolTable = functionTable;
 		assignments = new ArrayList <StackVarPair>();
 		maxAssig = 0;
+	}
+	
+	public void optimalAssign(){
+		subOptimalAssign();
+		for(StackVarPair a : assignments){
+			a.lifetime = new int[2];
+			a.lifetime[0] = -1;
+			a.lifetime[1] = -1;
+			determineLifetime(a, function, 0);
+			int end = determineEndOfLife(a, function, 0);
+			if(a.lifetime[1] == -1)a.lifetime[1] = end;
+		}
+	}
+	
+	public boolean findVar(HIRTree node, String name){
+		for(HIRTree c : node.getChildren()){
+			if(c.getChildren() == null){
+				if (c.getVal().equals(name))
+					return true;
+			}
+			else{
+				if(findVar(c, name))
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	public int determineEndOfLife(StackVarPair svp, HIRTree t, int i){
+		for(HIRTree op : t.getChildren()){
+			if(op.getChildren() != null){
+				switch (op.getId()){
+				case "Exprtest":
+				case "Assign":
+					if(op.getChild(1).getChildren() == null){
+						if(op.getChild(1).getVal().equals(svp.getVar())){
+							svp.lifetime[1] = i;
+						}
+					}
+					else{
+						if(findVar(op.getChild(1), svp.getVar())){
+							svp.lifetime[1] = i;
+						}
+					}
+					i++;
+					break;
+				case "If":
+				case "While":
+				case "Else":
+					i = determineEndOfLife(svp, op, i);
+					break;
+				}
+			}		
+		}
+		return i;
+	}
+	
+	public int determineLifetime(StackVarPair svp, HIRTree t, int i){
+		for(HIRTree op : t.getChildren()){
+			if(op.getChildren() != null){
+				switch (op.getId()){
+				case "Assign":
+					if(op.getChild(0).getVal().equals(svp.getVar())){
+						svp.lifetime[0] = i;
+						return i;
+					}
+					i++;
+					break;
+				case "If":
+				case "While":
+				case "Else":
+					i = determineLifetime(svp, op, i);
+					if(svp.lifetime[0] > -1)
+						return i;
+					break;
+			}
+		}
+			
+		}
+		return i;
 	}
 	
 	public void subOptimalAssign(){

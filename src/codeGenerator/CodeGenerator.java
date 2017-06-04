@@ -50,6 +50,7 @@ public class CodeGenerator {
 				boolean isVoid = isVoid(st);
 				int paramOffset = getParamStart(st, isVoid), retIndex = 0;
 				assigs = new VarAssign(ast, st);
+				//assigs.subOptimalAssign();
 				assigs.subOptimalAssign();
 				assigs.dump();
 				typeReturn = "void";
@@ -387,6 +388,7 @@ public class CodeGenerator {
 	
 	public void limitStack(StringBuilder jvm, HIRTree ast, Table st){
 		int max = 0, curr = 0;
+		boolean flag = false;
 		for(HIRTree op : ast.getChildren()){
 			if(op.getId().equals("Assign")){
 				if(op.getChild(0).getId().equals("Array"))
@@ -407,11 +409,13 @@ public class CodeGenerator {
 				}else{
 					if(op.getChild(1).getId().equals("ArraySize")){
 						curr += 2;
+						try{if(op.getChild(0).getVal().equals(ast.getChild(0).getChild(0).getVal())) flag = true;}catch(Exception e){}
 					}
 					else{
 						curr++;
 					}
 				}
+				if(flag){curr = 4; flag = false;}
 				try{
 					if(st.lookup(op.getChild(0).getVal()).getType().contains("array") && !op.getChild(1).getId().equals("ArraySize"))
 						curr = 4;
@@ -550,6 +554,25 @@ public class CodeGenerator {
 					}
 					S1 = S1 + "newarray int\n";
 					jvm.append(S1+S2);
+				}else if(node.getChild(1).getId().equals("Call")){
+					String argBuffer = "";
+					HIRTree callTree = node.getChild(1);
+					HIRTree arguments = callTree.getChild(callTree.getChildren().length - 1);
+					if(arguments.getChildren() != null){
+						argBuffer= "(";
+						for(HIRTree arg : arguments.getChildren()){
+							if(st.lookup(arg.getVal()).getType().equals("Array"))
+								argBuffer = argBuffer + "[I";
+							else
+								argBuffer = argBuffer + "I";
+							S1 = S1 + varLoad(arg.getVal(),st);
+						}
+						argBuffer = ")";
+					}
+					else
+						argBuffer = "()";
+					S1 = S1 + "invokestatic "+st.getModuleName()+"/"+callTree.getChild(0).getVal()+argBuffer+"[I\n";
+					jvm.append(S1 + S2);
 				}
 				else{
 					String aux = isGlobal ? ("getstatic"+st.getModuleName()+"/"+s.getName()+" [I\n") : ("aload_"+position+"\n"); 
@@ -584,7 +607,7 @@ public class CodeGenerator {
 				jvm.append(S1);
 			}else if(s.getType().equals("return") && typeReturn.equals("Array") && (node.getChild(1).getVal() != null)){
 				S1 = "aload_"+position+"\n";
-				S1 = S1 + "arraylength\niconst_1\nisub\ninitLoop"+position+":\n";
+				S1 = S1 + "arraylength\niconst_1\nisub\ndup\ninitloop"+position+":\n";
 				S1 = S1 + "iflt endInit"+position+"\n";
 				S1 = S1 + "dup\naload_"+position+"\nswap\n";
 				if(node.getChild(1).getId().equals("Integer")){
@@ -596,7 +619,7 @@ public class CodeGenerator {
 				}
 				else
 					S1 = S1 + varLoad(node.getChild(1).getVal(),st);
-				S1 = S1 + "iastore\niconst_1\nisub\ngoto initloop"+position+"\nendInit"+position+":\npop\n";
+				S1 = S1 + "iastore\niconst_1\nisub\ndup\ngoto initloop"+position+"\nendInit"+position+":\npop\n";
 				jvm.append(S1);
 			}
 			else{
