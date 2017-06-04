@@ -26,9 +26,16 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 			SimpleNode root = simpleParser.Module();
 			semantic.HIRTree hir = new semantic.HIRTree();
 			semantic.SemanticChecker smc=  new semantic.SemanticChecker();
-	  		root.dump("", hir);
-	  		hir.dump("");
+	  	//	root.dump("", hir);
+	  	//	hir.dump("");
 	  		smc.runSemanticCheck(hir, smc.getTable());
+
+	  		  ArrayList<semantic.Error>erros = smc.getError_list();
+                        
+                        for (int i=0;i<erros.size();i++){
+                        	erros.get(i).printError();
+                        	System.out.println("----");
+                        }
 	  		codeGenerator.CodeGenerator cg = new codeGenerator.CodeGenerator(hir, smc.getTable());
 	  		cg.generateCode();
 

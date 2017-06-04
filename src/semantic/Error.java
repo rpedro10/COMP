@@ -22,6 +22,7 @@ public class Error {
 	public void printError(){
 		
 		System.out.printf("linha: "+ line  +" --> "+ mensagem+":"+ variavel +'\n');
+		System.out.println("---");
 	}
 
 }
