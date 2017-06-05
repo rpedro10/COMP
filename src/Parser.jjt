@@ -23,9 +23,9 @@ public class Parser
 			SimpleNode root = simpleParser.Module();
 			semantic.HIRTree hir = new semantic.HIRTree();
 			semantic.Table rootTable = new semantic.Table();
-			//TODO for cycle to add all files pass in args
-			semantic.SemanticChecker smc=  new semantic.SemanticChecker(rootTable);
-	  		root.dump("", hir);
+	 			//TODO for cycle to add all files pass in args
+ 			semantic.SemanticChecker smc=  new semantic.SemanticChecker(rootTable);
+ 			root.dump("", hir);
 	  		hir.dump("");
 	  		smc.runSemanticCheck(hir, smc.getTable());
 

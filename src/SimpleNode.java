@@ -18,7 +18,7 @@ class SimpleNode implements Node {
   public SimpleNode(int i) {
 	  
     id = i;
-    line = parser.getToken(id).beginLine;
+    line = parser.getToken(id).endLine ;
     column = parser.getToken(id).beginColumn;
   }
 

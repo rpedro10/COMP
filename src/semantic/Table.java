@@ -62,31 +62,31 @@ public class Table {
 			return null;
 	}
     
-   public Table lookupFunction(String name){
-	   if(!parent.getSymbol(0).getType().equals("module name")){
-		   return parent.lookupFunction(name);
-	   }
-	   else{
-		   for(Table t : children){
-			  if(t.getSymbol(0).getName().equals(name))
-				  return t;
-		   }
-	   }
-	   return null;
-   }
+    public Table lookupFunction(String name){
+ 	   if(!parent.getSymbol(0).getType().equals("module name")){
+ 		   return parent.lookupFunction(name);
+ 	   }
+ 	   else{
+ 		   for(Table t : children){
+ 			  if(t.getSymbol(0).getName().equals(name))
+ 				  return t;
+ 		   }
+ 	   }
+ 	   return null;
+    }
 
-   public Table lookupModule(String name){
-	   if(parent!=null){
-		   return parent.lookupFunction(name);
-	   }
-	   else{
-		   for(Table t : children){
-			  if(t.getSymbol(0).getName().equals(name))
-				  return t;
-		   }
-	   }
-	   return null;
-   }
+    public Table lookupModule(String name){
+ 	   if(parent!=null){
+ 		   return parent.lookupModule(name);
+ 	   }
+ 	   else{
+ 		   for(Table t : children){
+ 			  if(t.getSymbol(0).getName().equals(name))
+ 				  return t;
+ 		   }
+ 	   }
+ 	   return null;
+    }
    
    public int checkForReturnPosition(){ //Obter posição em termos de stack da variavel de retorno
 	   Symbol ret = tbl.get(1);
