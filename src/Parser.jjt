@@ -6,6 +6,7 @@ options
 PARSER_BEGIN(Parser)
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class Parser
 {
@@ -152,7 +153,7 @@ void Stmt()#void: { }
 }
 void Call(): {}
 {
-	 Id() ( ( "." Id() )? <LPAR> ( ArgumentList() )? <RPAR> ) | ".size"
+	 Id() ( ( ( "." Id() )? <LPAR> ( ArgumentList() )? <RPAR> ) | ".size" )
 }
 void Assign(): { Token assign; }
 {
@@ -178,11 +179,11 @@ void ScalarAccess()#void:{} // -- ID
 
 void ArraySize(): { } // ++ ID
 {
-	Id() ScalarAccess() | Integer()
+	(Id() ScalarAccess()) | Integer()
 }
 void Term(): { }
 {
-	( <ADDSUB_OP> )? ( Integer() | LOOKAHEAD(Call()) Call() | Id() ( ArrayAccess() | ScalarAccess())) // ID
+	( <ADDSUB_OP> )? ( Integer() | ( LOOKAHEAD(Call()) Call() | (Id() ( ArrayAccess() | ScalarAccess())) ) )  // ID
 }
 
 void Exprtest(): { Token RelOp; }
