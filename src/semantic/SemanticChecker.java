@@ -44,9 +44,8 @@ public class SemanticChecker {
 							}else{
 								//retornar erro "var;" again
 								// var linha msg
-								Error rr = new Error(child.getChild(k).getVal(),child.getChild(k).getLine(),"DeclarationList error, redeclaration of: ");
+								Error rr = new Error(child.getChild(k).getVal(),child.getChild(k).getLine(),"Redeclaration of variable: ");
 								error_list.add(rr);
-								System.out.println("DeclarationList error, redeclaration " + child.getChild(k).getVal());
 							}
 						}
 					}
@@ -213,7 +212,15 @@ public class SemanticChecker {
 							symbolTable.insert(tree.getChild(i).getVal(), "int", true);
 						}else if(tree.getChild(i + 1).getId().equals("Call")){
 							//if function, check function return is int or array
-							symbolTable.insert(tree.getChild(i).getVal(), "int", true);
+							String type = checkCall(tree.getChild(i + 1), symbolTable);
+							if(type.equals("return int"))
+								symbolTable.insert(tree.getChild(i).getVal(), "int", true);
+							else if(type.equals("return array")){
+								symbolTable.insert(tree.getChild(i).getVal(), "array", true);
+							}else{
+								Error rr = new Error(tree.getChild(i).getVal(),tree.getChild(i).getLine(),"Function does not return any type to variable: ");
+								error_list.add(rr);
+							}
 						}else if(tree.getChild(i+1).getId().equals("SizeAccess")){
 							symbolTable.insert(tree.getChild(i).getVal(), "int", true); //Para poder trabalhar com x = array.size
 						}else if(tree.getChild(i + 1).getId().equals("Id")){
@@ -423,6 +430,7 @@ public class SemanticChecker {
 						error_list.add(rr);
 						funcTable.insert(currFunct.getChild(0).getVal(), "function name", false);
 					}
+					funcTable.insert("void", "return", false);
 				}
 				if(currFunct.getChildren().length > 1){
 					if(currFunct.getChild(1).getId().equals("Parameters")){
@@ -442,7 +450,7 @@ public class SemanticChecker {
 		}
 	}
 
-	public void checkCall(HIRTree tree, Table symbolTable){
+	public String checkCall(HIRTree tree, Table symbolTable){
 		// io.println
 		if(tree.getChild(0).getVal().equals("io")) {
 			String ss =tree.getChild(1).getVal();
@@ -453,7 +461,7 @@ public class SemanticChecker {
 					HIRNode[] children = tree.getChild(2).getChildren();
 					for(int i=0; i<children.length;i++){
 						if(!children[i].getId().equals("String")){
-							if (symbolTable.lookup(children[i].getVal())!= null){
+							if (symbolTable.lookup(children[i].getVal()) != null){
 								 System.out.println("Print Variavel: " + children[i].getVal() );
 							}else{
 								Error rr = new Error(children[i].getVal() ,children[i].getLine()-2,"Variable not defined: ");
@@ -462,92 +470,64 @@ public class SemanticChecker {
 						}
 					}
 				}
+			}else if(tree.getChild(1).getVal().equals("read")){
+				//check if parameters is null
+			}else{
+				Error rr = new Error(tree.getChild(1).getVal() ,tree.getChild(1).getLine(),"Function not defined: ");
+				error_list.add(rr);			
 			}
+			return "return void";
 		}else if(tree.getChildren().length>1){
 			if(tree.getChild(1).getId().equals("Id")){
 				Table tt = symbolTable.lookupModule(tree.getChild(0).getVal());
 				if(tt == null){
 					Error rr = new Error(tree.getChild(0).getVal() ,tree.getChild(0).getLine(),"Module not defined: ");
 					error_list.add(rr);
+					return null;
 				}else{
 					Table func = symbolTable.lookupFunction(tree.getChild(1).getVal());
 					if(func==null){
 						Error rr = new Error(tree.getChild(1).getVal() ,tree.getChild(1).getLine(),"Function not defined: ");
 						error_list.add(rr);
+						return null;
 					}else{
-						//check parameters
+						//check parameters and return "return type"
+						return func.getSymbol(1).getType();
 					}
 				}
 			}else if(tree.getChild(1).getId().equals("SizeAccess")){
 				Symbol symbol = symbolTable.lookup(tree.getChild(0).getVal());
 				if(symbol == null){
-
+					Error rr = new Error(tree.getChild(0).getVal() ,tree.getChild(0).getLine(),"Variable not defined: ");
+					error_list.add(rr);
 				}else if(!symbol.getType().equals("array") && !symbol.getType().equals("parameter array") && !symbol.getType().equals("return array") ){
-
+					Error rr = new Error(tree.getChild(0).getVal() ,tree.getChild(0).getLine(),"Variable is not an array: ");
+					error_list.add(rr);
 				}else{
-					//return "int";
+					return "int";
+				}
+			}else if(tree.getChild(1).getId().equals("ArgumentList")){
+				Table func = symbolTable.lookupFunction(tree.getChild(0).getVal());
+				if(func==null){
+					Error rr = new Error(tree.getChild(1).getVal() ,tree.getChild(1).getLine(),"Function not defined: ");
+					error_list.add(rr);
+				}else{
+					//check parameters and return "return type"
+					return func.getSymbol(1).getType();
 				}
 			}
-		}
-		/*Table tt = symbolTable.lookupModule(tree.getChild(0).getVal());
-		if(tt==null) {
-			// modulo nao existe?
-			Error rr = new Error(tree.getChild(0).getVal() ,tree.getChild(0).getLine(),"Module not defined: ");
-			error_list.add(rr);
-		}else if(tt!=null){
-			System.out.println("Modulo encontrado");
-			
-			String ss =tree.getChild(1).getVal();
-			System.out.println(ss);
-			Table func = tt.lookupFunction(ss);
-			
+		}else{
+			Table func = symbolTable.lookupFunction(tree.getChild(0).getVal());
 			if(func==null){
 				Error rr = new Error(tree.getChild(1).getVal() ,tree.getChild(1).getLine(),"Function not defined: ");
 				error_list.add(rr);
+			}else{
+				//check parameters and return "return type"
+				return func.getSymbol(1).getType();
 			}
-			else
-			{
-				/*
-				 * 
-				 * 
-				 * 
-	
-	if(currFunct.getChildren().length > 1){
-					if(currFunct.getChild(1).getId().equals("Parameters")){
-						parameters = currFunct.getChild(1);
-						for(HIRTree param : parameters.getChildren()){
-							if(param.getId().equals("Array")){
-								funcTable.insert(param.getVal(), "parameter array", true);
-							}
-							else if(param.getId().equals("Id")){
-								funcTable.insert(param.getVal(), "parameter int", true);
-							}
-						}
-				 
-				
-				if(tree.getChild(2).getId().equals("ArgumentList")){
-					//	System.out.println(tree.getChild(2).getId();
-					HIRNode[] children = tree.getChild(2).getChildren();
-					//testar os argumentos
-				}			
-			}
-		}*/
+		}
+		return null;
 	}
-	
-	
-	
-		/**
-		f( io ){
-		    if(fun�oes do io){
-		        verifica�oes (ja tao feitas)
-		    }
-		}else if (verfica se e um modulo)
-		    if(verifica se e fun�ao)
-		         stuff needed
-		else if(verifica se e fun�ao deste file)
-		     stuff needed
-		*/
-		//
 	
 	public Table getTable(){
 		return this.symbolTable;
