@@ -225,12 +225,16 @@ public class SemanticChecker {
 								}
 							}
 							
-						}else if(tree.getChild(i + 1).getId().equals("Arith")){					/*===================*/
-							symbolTable.insert(tree.getChild(i).getVal(), "int", true);			//Estas linhas são um//
-																								//remendo para que   //
-						}else if(tree.getChild(i + 1).getId().equals("Array")){					//codegen funcione   //
-							symbolTable.insert(tree.getChild(i).getVal(), "array", true);		//depois vejam melhor//
-																								/*==================*/
+						}else if(tree.getChild(i + 1).getId().equals("Arith")){
+							symbolTable.insert(tree.getChild(i).getVal(), "int", true);
+						}else if(tree.getChild(i + 1).getId().equals("Array")){
+							Symbol lookup2 = symbolTable.lookup(tree.getChild(i+1).getChild(0).getVal());
+							if(lookup2==null){
+								Error rr = new Error(tree.getChild(i+1).getChild(0).getVal(),tree.getChild(i+1).getChild(0).getLine(),"Variable is not defined: ");
+								error_list.add(rr);
+							}else{
+								symbolTable.insert(tree.getChild(i).getVal(), "int", true);
+							}
 						}
 					}else{
 						if(tree.getChild(i + 1).getId().equals("ArraySize")){
@@ -276,6 +280,24 @@ public class SemanticChecker {
 					//erro\warning not initialized
 					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine(),"Variable is not initialized: ");
 					error_list.add(rr);
+				}else if(tree.getChild(i).getChild(1).getId().equals("ArrayAccess")){
+					try{
+						Integer.parseInt(tree.getChild(i).getChild(1).getVal());
+					}catch(Exception e){
+						lookup = symbolTable.lookup(tree.getChild(i).getChild(1).getVal());
+						if(lookup==null){
+							//erro not defined;
+							Error rr = new Error(tree.getChild(i).getChild(1).getVal(),tree.getChild(i).getChild(1).getLine(),"Variable is not defined: ");
+							error_list.add(rr);
+						}else if(!lookup.getType().equals("int") && !lookup.getType().equals("parameter int") && !lookup.getType().equals("return int")){
+							Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine(),"Variable is not an integer: ");
+							error_list.add(rr);
+						}else if(!lookup.isInitialized()){
+							//erro\warning not initialized
+							Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine(),"Variable is not initialized: ");
+							error_list.add(rr);
+						}
+					}
 				}
 			}else if(tree.getChild(i).getId().equals("Arith")){
 				addArithm(tree.getChild(i), symbolTable);
