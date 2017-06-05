@@ -393,7 +393,7 @@ public class CodeGenerator {
 		}	
 	}
 	
-	public void limitStack(StringBuilder jvm, HIRTree ast, Table st){
+	public int limitStack(StringBuilder jvm, HIRTree ast, Table st){
 		int max = 0, curr = 0;
 		boolean flag = false;
 		for(HIRTree op : ast.getChildren()){
@@ -431,6 +431,8 @@ public class CodeGenerator {
 			else if(op.getId().equals("Call")){
 				if(op.getChild(op.getChildren().length - 1).getChildren() != null)
 					curr = op.getChild(op.getChildren().length - 1).getChildren().length;
+			}else if(op.getId().equals("While") || op.getId().equals("If") || op.getId().equals("Else")){
+				curr = limitStack(new StringBuilder(), op, st);
 			}
 			if(curr > max)
 				max = curr;
@@ -440,6 +442,7 @@ public class CodeGenerator {
 			jvm.append(".limit stack "+max+"\n");
 		else
 			jvm.append(".limit stack 1\n");
+		return max;
 	}
 	
 	public boolean isVoid(Table st){
@@ -567,7 +570,7 @@ public class CodeGenerator {
 			Symbol s = st.lookup(node.getChild(0).getVal());
 			boolean isGlobal = st.isGlobal(s);
 			int position = isGlobal ? 0 : assigs.getStackNumber(s.getName());
-			if(s.getType().equals("array") || s.getType().equals("parameter array")){
+			if(s.getType().equals("array") || s.getType().equals("parameter array") || s.getType().equals("return array")){
 				S2 = isGlobal ? "putstatic "+st.getModuleName()+"/"+s.getName()+" [I\n" : "astore_"+position+"\n";
 				if(node.getChild(1).getId().equals("ArraySize")){
 					String arraysize = node.getChild(1).getChild(0).getVal();
@@ -801,7 +804,7 @@ public class CodeGenerator {
 	
 	public void writeJasminFile(StringBuilder jvm, String className){
 		String path = Paths.get("").toAbsolutePath().toString();
-		path = path.substring(0, path.lastIndexOf("/"));
+		//path = path.substring(0, path.lastIndexOf("/"));
 		path = path + "/" + className + ".j";
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(path));
