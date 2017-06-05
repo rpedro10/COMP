@@ -26,15 +26,14 @@ public class Parser
 	  		root.dump("", hir);
 	  		hir.dump("");
 	  		smc.runSemanticCheck(hir, smc.getTable());
-
-	  		  ArrayList<semantic.Error>erros = smc.getError_list();
-                        
-                        for (int i=0;i<12;i++){
-                        	erros.get(i).printError();
-                        	System.out.println("----");
-                        }
-	  		codeGenerator.CodeGenerator cg = new codeGenerator.CodeGenerator(hir, smc.getTable());
-	  		cg.generateCode();
+  		    ArrayList<semantic.Error> erros = smc.getError_list();         
+            for (int i=0;i<erros.size();i++){
+            	erros.get(i).printError();
+            }
+            if(erros.size() == 0){
+		  		codeGenerator.CodeGenerator cg = new codeGenerator.CodeGenerator(hir, smc.getTable());
+		  		cg.generateCode();
+		  	}
 
 	  	}catch(IOException e){
 	  		e.printStackTrace();
