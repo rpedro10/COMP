@@ -1,0 +1,68 @@
+P17 -SIMPLE
+
+Grupo 31
+
+
+NAME1: <Miguel Teixeira>, NR: <up      >, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
+NAME2: <Diogo Cepa>, NR: <up        >, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
+NAME3: <Rui Araujo>, NR: <up201403263>, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
+
+
+
+** SUMMARY: (Describe what your tool does and its main features.)
+
+Compilador de linguagem Simple (yal) com output JVM bytecodes em formato jassmin.
+Main Features:
+
+
+** EXECUTE: (indicate how to run your tool)
+
+javacc Parser.jjt
+javac *.java
+java Parser <File.yal>
+
+**DEALING WITH SYNTACTIC ERRORS:
+
+A análise sintatica da linguagem SIMPLE é efetuada 
+O programa para quando encontra o primeiro erro, mostrando a sua linha, o que lá tem e o que esperava.
+
+**SEMANTIC ANALYSIS: (Refer the possible semantic rules implemented by your tool.)
+
+A analise semantica faz verificações de tipos de variáveis, verificação das inicializações de variaveis. Operações de assign, aritmeticas,
+chamadas de funções...
+
+**CODE GENERATION: (when applicable, describe how the code generation of your tool works and identify the possible problems your tool has regarding code generation.)
+ 
+ O code generation vai percorrendo descendentemente a AST e fazendo a conversao 
+ 
+ **OVERVIEW: (refer the approach used in your tool, the main algorithms, the third-party tools and/or packages, etc.)
+ Defaul Package com o Parser 
+ Package Semantic onde é realizada a analise semantica;
+ Package codeGenerator onde é feito o code generation
+ 
+ 
+ 
+**TESTSUITE AND TEST INFRASTRUCTURE: (Describe the content of your testsuite regarding the number of examples, the approach to automate the test, etc.)
+Quantos exemplos vamos ter 
+
+
+ 
+**TASK DISTRIBUTION: (Identify the set of tasks done by each member of the project.)
+
+Analise Sintatica-
+Analise Semantica-
+Code Generation -
+
+
+ 
+**PROS: (Identify the most positive aspects of your tool)
+
+
+ 
+**CONS: (Identify the most negative aspects of your tool)
+
+
+ 
+ 
+
+
