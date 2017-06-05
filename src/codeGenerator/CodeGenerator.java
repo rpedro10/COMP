@@ -509,6 +509,14 @@ public class CodeGenerator {
 		}
 		else{
 			HIRTree arguments = node.getChild(node.getChildren().length - 1);
+			if(arguments.getId().equals("SizeAccess")){
+				Symbol s = st.lookup(node.getChild(0).getVal());
+				boolean isGlobal = st.isGlobal(s);
+				int position = isGlobal ? -1 : assigs.getStackNumber(s.getName());
+				String aux = isGlobal ? ("getstatic"+st.getModuleName()+"/"+s.getName()+" [I\n") : ("aload_"+position+"\n");
+				jvm.append(aux + "arraylength\n");
+			}
+			else{
 			if(arguments.getChildren() != null){
 				for(HIRTree arg : arguments.getChildren()){
 					argBuffer = argBuffer + "I";
@@ -520,6 +528,7 @@ public class CodeGenerator {
 				jvm.append("V\n");
 			else
 				jvm.append("I\n");
+			}
 		}
 	}
 	
