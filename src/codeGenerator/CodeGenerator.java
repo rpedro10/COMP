@@ -25,14 +25,14 @@ public class CodeGenerator {
 	public void generateCode(){
 		StringBuilder codeHolder = new StringBuilder("");
 		translator(codeHolder, tree, symbolTable);
-		System.out.print(codeHolder);
+		//System.out.print(codeHolder);
 	}
 	
 	public void translator(StringBuilder jvm, HIRTree ast, Table st){
 		switch (ast.getId()){
 			case "Module":
-				System.out.println("\n===CODE GENERATION===");
-				symbolTable.dump("");
+				//System.out.println("\n===CODE GENERATION===");
+				//symbolTable.dump("");
 				setModuleHeader(st.getVariables().get(0).getName(), jvm);
 				if(st.getVariables().size() > 1) /*Se tiver globais definir agora*/
 					setGlobals(st.getVariables(), ast.getChild(1), jvm, st.getSymbol(0).getName()); 
@@ -52,7 +52,7 @@ public class CodeGenerator {
 				assigs = new VarAssign(ast, st);
 				//assigs.subOptimalAssign();
 				assigs.subOptimalAssign();
-				assigs.dump();
+				//assigs.dump();
 				typeReturn = "void";
 				if(!isVoid){
 					retIndex = getReturnVarIndex(st);
@@ -802,7 +802,7 @@ public class CodeGenerator {
 	public void writeJasminFile(StringBuilder jvm, String className){
 		String path = Paths.get("").toAbsolutePath().toString();
 		path = path.substring(0, path.lastIndexOf("/"));
-		path = path + "/src/testFiles/" + className + ".j";
+		path = path + "/" + className + ".j";
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(path));
 			bw.write(jvm.toString());

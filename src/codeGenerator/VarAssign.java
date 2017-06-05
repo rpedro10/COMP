@@ -154,7 +154,7 @@ public class VarAssign {
 		if((i - 1) > maxAssig)
 			maxAssig = i - 1;
 		if(t.getChildTables().size() > 0){
-			for(Table ts : symbolTable.getChildTables()){
+			for(Table ts : t.getChildTables()){
 				subBlockAssign(ts, i);
 			}
 		}
