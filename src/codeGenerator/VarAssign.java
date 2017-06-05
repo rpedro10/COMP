@@ -104,7 +104,8 @@ public class VarAssign {
 		String retBuffer = null;
 		for(Symbol s : symbolTable.getVariables()){
 			switch (s.getType()){
-				case "return":
+				case "return int":
+				case "return array":
 					retBuffer = s.getName();
 					break;
 				case "parameter int":

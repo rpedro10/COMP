@@ -121,13 +121,16 @@ public class CodeGenerator {
 	public void genWhileCode(StringBuilder jvm, Table whileTbl, HIRTree op, int label){
 		StringBuilder jmp = new StringBuilder("");
 		jmp.append("loop"+label+":\n");
-		for(HIRTree comp : op.getChild(0).getChildren()){
+		for(int i = 0; i < 2; i++){
+			HIRTree comp = op.getChild(0).getChild(i);
 			if(comp.getId().equals("Integer")){
 				int numInt = Integer.parseInt(comp.getVal());
 				if(numInt > 5)
 					jmp.append("bipush " + numInt+"\n");
 				else
 					jmp.append("iconst_"+numInt+"\n");
+			}else if(comp.getId().equals("Call")){
+				genCallCode(jmp, whileTbl, comp);
 			}else{
 				jmp.append(varLoad(comp.getVal(), whileTbl));
 			}
@@ -437,7 +440,7 @@ public class CodeGenerator {
 	
 	public boolean isVoid(Table st){
 		try{
-			if(st.getSymbol(1).getType().equals("return"))
+			if(st.getSymbol(1).getType().split(" ")[0].equals("return"))
 				return false;
 			else
 				return true;
@@ -519,15 +522,27 @@ public class CodeGenerator {
 			else{
 			if(arguments.getChildren() != null){
 				for(HIRTree arg : arguments.getChildren()){
-					argBuffer = argBuffer + "I";
+					
+					String[] aux = st.lookup(arg.getVal()).getType().split(" ");
+					if(aux.length > 1){
+						argBuffer = aux[1].equals("array") ? (argBuffer + "[I") : (argBuffer + "I");
+					}
+					else
+						argBuffer = aux[0].equals("array") ? (argBuffer + "[I") : (argBuffer + "I");
 					jvm.append(varLoad(arg.getVal(),st));
 				}
 			}
 			jvm.append("invokestatic "+st.getModuleName()+"/"+node.getChild(0).getVal()+"("+argBuffer+")");
-			if(isVoid(st.lookupFunction(node.getChild(0).getVal())))
+			Table aid = st.lookupFunction(node.getChild(0).getVal());
+			if(isVoid(aid))
 				jvm.append("V\n");
-			else
-				jvm.append("I\n");
+			else{
+				String aux = aid.getSymbol(1).getType().split(" ")[1];
+				if(aux.equals("array"))
+					jvm.append("[I\n");
+				else
+					jvm.append("I\n");
+			}
 			}
 		}
 	}
@@ -548,7 +563,7 @@ public class CodeGenerator {
 			Symbol s = st.lookup(node.getChild(0).getVal());
 			boolean isGlobal = st.isGlobal(s);
 			int position = isGlobal ? 0 : assigs.getStackNumber(s.getName());
-			if(s.getType().equals("array")){
+			if(s.getType().equals("array") || s.getType().equals("parameter array")){
 				S2 = isGlobal ? "putstatic "+st.getModuleName()+"/"+s.getName()+" [I\n" : "astore_"+position+"\n";
 				if(node.getChild(1).getId().equals("ArraySize")){
 					String arraysize = node.getChild(1).getChild(0).getVal();
@@ -586,8 +601,8 @@ public class CodeGenerator {
 				else{
 					String aux = isGlobal ? ("getstatic"+st.getModuleName()+"/"+s.getName()+" [I\n") : ("aload_"+position+"\n"); 
 					S1 =  aux;
-					S1 = S1 + "arraylength\niconst_1\nisub\ndup\ninitLoop"+position+":\n";
-					S1 = S1 + "iflt endInit"+position+"\n";
+					S1 = S1 + "arraylength\niconst_1\nisub\ndup\ninitLoop"+position+node.getLine()+":\n";
+					S1 = S1 + "iflt endInit"+position+node.getLine()+"\n";
 					S1 = S1 + "dup\n"+aux+"swap\n";
 					if(node.getChild(1).getId().equals("Integer")){
 						int numInt = Integer.parseInt(node.getChild(1).getVal());
@@ -598,7 +613,7 @@ public class CodeGenerator {
 					}
 					else
 						S1 = S1 + varLoad(node.getChild(1).getVal(),st);
-					S1 = S1 + "iastore\niconst_1\nisub\ndup\ngoto initLoop"+position+"\nendInit"+position+":\npop\n";
+					S1 = S1 + "iastore\niconst_1\nisub\ndup\ngoto initLoop"+position+node.getLine()+"\nendInit"+position+node.getLine()+":\npop\n";
 					jvm.append(S1);
 				}
 			}else if(s.getType().equals("return") && node.getChild(1).getId().equals("ArraySize")){
