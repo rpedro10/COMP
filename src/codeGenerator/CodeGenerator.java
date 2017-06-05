@@ -120,7 +120,7 @@ public class CodeGenerator {
 	
 	public void genWhileCode(StringBuilder jvm, Table whileTbl, HIRTree op, int label){
 		StringBuilder jmp = new StringBuilder("");
-		jmp.append("loop"+label+":\n");
+		jmp.append("whileloop"+label+op.getLine()+":\n");
 		for(int i = 0; i < 2; i++){
 			HIRTree comp = op.getChild(0).getChild(i);
 			if(comp.getId().equals("Integer")){
@@ -156,7 +156,7 @@ public class CodeGenerator {
 			jmp.append("ifeq ");
 			break;
 		}
-		jmp.append("label"+label+"\n");
+		jmp.append("whilelabel"+label+op.getLine()+"\n");
 		int tblcounter = 0, i = 1;
 		while(i < op.getChildren().length){
 			HIRTree operation = op.getChild(i);
@@ -182,7 +182,11 @@ public class CodeGenerator {
 						genIfElseCode(jmp, ifTbl2, null, operation, null, (tblcounter+1)*10);
 						tblcounter++;
 					}
-				}catch(ArrayIndexOutOfBoundsException e){}
+				}catch(ArrayIndexOutOfBoundsException e){
+					Table ifTbl2 = whileTbl.getChild(tblcounter);
+					genIfElseCode(jmp, ifTbl2, null, operation, null, (tblcounter+1)*10);
+					tblcounter++;
+				}
 				break;
 			case "While":
 				Table whileTbl2 = whileTbl.getChild(tblcounter);
@@ -192,7 +196,7 @@ public class CodeGenerator {
 			}
 			i++;
 		}
-		jmp.append("goto loop"+label+"\nlabel"+label+":\n");
+		jmp.append("goto whileloop"+label+op.getLine()+"\nwhilelabel"+label+op.getLine()+":\n");
 		jvm.append(jmp.toString());
 		
 	}
@@ -232,7 +236,7 @@ public class CodeGenerator {
 				jmp.append("ifeq ");
 				break;
 		}
-		jmp.append("label"+label+"\n");
+		jmp.append("iflabel"+label+ifOp.getLine()+"\n");
 		int tblcounter = 0, i = 1;
 		while(i < ifOp.getChildren().length){
 			HIRTree operation = ifOp.getChild(i);
@@ -269,7 +273,7 @@ public class CodeGenerator {
 			i++;
 		}
 		if(elseTbl != null){
-			jmp.append("goto label"+(label + 1)+"\nlabel"+label+":\n");
+			jmp.append("goto iflabel"+(label + 1)+ifOp.getLine()+"\niflabel"+label+ifOp.getLine()+":\n");
 			tblcounter = 0; 
 			i = 0;
 			while(i < elseOp.getChildren().length){
@@ -306,9 +310,9 @@ public class CodeGenerator {
 				}
 				i++;
 			}
-			jmp.append("label"+(label+1)+":\n");
+			jmp.append("iflabel"+(label+1)+ifOp.getLine()+":\n");
 		}else{
-			jmp.append("label"+label+":\n");
+			jmp.append("iflabel"+label+ifOp.getLine()+":\n");
 		}
 		jvm.append(jmp.toString());
 	}
