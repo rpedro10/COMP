@@ -36,7 +36,6 @@ public class Parser
 	  		codeGenerator.CodeGenerator cg = new codeGenerator.CodeGenerator(hir, smc.getTable());
 	  		cg.generateCode();
 	  	}
-
 	  	}catch(IOException e){
 	  		e.printStackTrace();
 	  	}
