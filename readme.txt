@@ -3,9 +3,9 @@ P17 -SIMPLE
 Grupo 31
 
 
-NAME1: <Miguel Teixeira>, NR: <up201607941>, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
-NAME2: <Diogo Cepa>, NR: <up201403367>, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
-NAME3: <Rui Araujo>, NR: <up201403263>, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
+NAME1: <Miguel Teixeira>, NR: <up201607941>, GRADE: <16 value>, CONTRIBUTION: <33 %>
+NAME2: <Diogo Cepa>, NR: <up201403367>, GRADE: <16 value>, CONTRIBUTION: <33 %>
+NAME3: <Rui Araujo>, NR: <up201403263>, GRADE: <16 value>, CONTRIBUTION: <33 %>
 
 
 
@@ -36,7 +36,6 @@ A analise semantica faz verificações de tipos de variáveis, verificação das
 chamadas de funções...
 
 **CODE GENERATION: (when applicable, describe how the code generation of your tool works and identify the possible problems your tool has regarding code generation.)
- 
  O code generation vai percorrendo descendentemente a AST e fazendo a conversao 
  
  **OVERVIEW: (refer the approach used in your tool, the main algorithms, the third-party tools and/or packages, etc.)
@@ -45,27 +44,22 @@ chamadas de funções...
  Package codeGenerator onde é feito o code generation
  
  
- 
 **TESTSUITE AND TEST INFRASTRUCTURE: (Describe the content of your testsuite regarding the number of examples, the approach to automate the test, etc.)
-
 Explicação dos exemplos presentes na pasta testSuite
 
- 
 **TASK DISTRIBUTION: (Identify the set of tasks done by each member of the project.)
 
-Analise Sintatica-
-Analise Semantica-
-Code Generation -
+Analise Sintatica + Geração AST + Geração HIR tree --> os 3 elementos
+Analise Semantica --> Rui e Diogo
+Code Generation --> Miguel
 
 
  
-**PROS: (Identify the most positive aspects of your tool)
-
-
+**PROS: (Identify the most positive aspects of your tool) 
+Faz uma conversao correta de yal para JVM bytecodes em formato jasmin
  
 **CONS: (Identify the most negative aspects of your tool)
-
-
+Pequeno bug na analise semantica
  
  
 
