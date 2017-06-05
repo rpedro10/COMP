@@ -114,7 +114,9 @@ public class SemanticChecker {
 		    				addArithm(subChild, symbolTable);
 		    			}
 		    		}
-	    		}else if(child.getId().equals("If")){
+	    		}else if(child.getId().equals("Assign")){
+    				addAssign(child, symbolTable);
+    			}else if(child.getId().equals("If")){
     				Table ifTable = new Table(symbolTable);
     				runSemanticCheck(child,ifTable);
     				symbolTable.insertChildTable(ifTable);
@@ -163,7 +165,9 @@ public class SemanticChecker {
 		    				addArithm(subChild, symbolTable);
 		    			}
 		    		}
-	    		}else if(child.getId().equals("If")){
+	    		}else if(child.getId().equals("Assign")){
+    				addAssign(child, symbolTable);
+    			}else if(child.getId().equals("If")){
     				Table ifTable = new Table(symbolTable);
     				runSemanticCheck(child,ifTable);
     				symbolTable.insertChildTable(ifTable);
@@ -380,58 +384,6 @@ public class SemanticChecker {
 			}
 		}
 	}
-
-	//THIS IS HERE JUST TO MAKE SURE I DIDN'T MISS ANYTHING FROM CHANGES
-	/*public void initModuleChildTables(HIRTree moduleNode, Table moduleTable){
-		HIRTree[] children = moduleNode.getChildren();
-		HIRTree currFunct;
-		HIRTree parameters;
-		if(children.length > 2){ 
-			Table funcTable;
-			for(int i = 2; i < children.length; i++){
-				currFunct = children[i];
-				funcTable = new Table(moduleTable);
-				if(currFunct.getChild(0).getId().equals("Return")){
-					//FUTURE allow same name but not same parameters
-					if(funcTable.lookupFunction(currFunct.getChild(0).getChild(1).getVal()) == null){
-						funcTable.insert(currFunct.getChild(0).getChild(1).getVal(), "function name", true);
-					}else{
-						System.out.println("Function " + currFunct.getChild(0).getChild(1).getVal() +" redefinition");
-						funcTable.insert(currFunct.getChild(0).getChild(1).getVal(), "function name", false);
-					}
-
-					if(funcTable.lookup(currFunct.getChild(0).getChild(0).getVal()) == null){
-						funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", true);
-					}else{
-						System.out.println("Return variable " + currFunct.getChild(0).getChild(0).getVal() + " already existis in global context");
-						funcTable.insert(currFunct.getChild(0).getChild(0).getVal(), "return", false);
-					}
-				}else{
-					//FUTURE allow same name but not same parameters
-					if(funcTable.lookupFunction(currFunct.getChild(0).getVal()) == null){
-						funcTable.insert(currFunct.getChild(0).getVal(), "function name", true);
-					}else{
-						System.out.println("Function " + currFunct.getChild(0).getVal() +" redefinition");
-						funcTable.insert(currFunct.getChild(0).getVal(), "function name", false);
-					}
-				}
-				if(currFunct.getChildren().length > 1){
-					if(currFunct.getChild(1).getId().equals("Parameters")){
-						parameters = currFunct.getChild(1);
-						for(HIRTree param : parameters.getChildren()){
-							if(param.getId().equals("Array")){
-								funcTable.insert(param.getVal(), "parameter array", true);
-							}
-							else if(param.getId().equals("Id")){
-								funcTable.insert(param.getVal(), "parameter int", true);
-							}
-						}
-					}
-				}
-				moduleTable.insertChildTable(funcTable);
-			}
-		}
-	}*/
 	
 	public void initModuleChildTables(HIRTree moduleNode, Table moduleTable){
 		HIRTree[] children = moduleNode.getChildren();
@@ -491,84 +443,96 @@ public class SemanticChecker {
 	}
 
 	public void checkCall(HIRTree tree, Table symbolTable){
-			
+		// io.println
+		if(tree.getChild(0).getVal().equals("io")) {
+			String ss =tree.getChild(1).getVal();
 
-			// io.println
-			if(tree.getChild(0).getVal().equals("io")) {
-				String ss =tree.getChild(1).getVal();
+			if(tree.getChild(1).getVal().equals("println") || tree.getChild(1).getVal().equals("print")){
 
-				if((tree.getChild(1).getVal().equals("println"))){
-
-					if(tree.getChild(2).getId().equals("ArgumentList")){
-					//	System.out.println(tree.getChild(2).getId());
-					//	System.out.println("alem");
-					//	System.out.println("aqui2");
-
-						HIRNode[] children = tree.getChild(2).getChildren();
-						for(int i=0; i<children.length;i++){
-							if(!children[i].getId().equals("String")){
+				if(tree.getChild(2).getId().equals("ArgumentList")){
+					HIRNode[] children = tree.getChild(2).getChildren();
+					for(int i=0; i<children.length;i++){
+						if(!children[i].getId().equals("String")){
 							if (symbolTable.lookup(children[i].getVal())!= null){
 								 System.out.println("Print Variavel: " + children[i].getVal() );
-							}
-							else{
+							}else{
 								Error rr = new Error(children[i].getVal() ,children[i].getLine()-2,"Variable not defined: ");
 								error_list.add(rr);
-							}
 							}
 						}
 					}
 				}
 			}
-			Table tt = symbolTable.lookupModule(tree.getChild(0).getVal());
-			if(tt==null) {
-				// modulo nao existe?
-				Error rr = new Error(tree.getChild(0).getVal() ,tree.getChild(0).getLine(),"Module not defined: ");
+		}else if(tree.getChildren().length>1){
+			if(tree.getChild(1).getId().equals("Id")){
+				Table tt = symbolTable.lookupModule(tree.getChild(0).getVal());
+				if(tt == null){
+					Error rr = new Error(tree.getChild(0).getVal() ,tree.getChild(0).getLine(),"Module not defined: ");
+					error_list.add(rr);
+				}else{
+					Table func = symbolTable.lookupFunction(tree.getChild(1).getVal());
+					if(func==null){
+						Error rr = new Error(tree.getChild(1).getVal() ,tree.getChild(1).getLine(),"Function not defined: ");
+						error_list.add(rr);
+					}else{
+						//check parameters
+					}
+				}
+			}else if(tree.getChild(1).getId().equals("SizeAccess")){
+				Symbol symbol = symbolTable.lookup(tree.getChild(0).getVal());
+				if(symbol == null){
+
+				}else if(!symbol.getType().equals("array") && !symbol.getType().equals("parameter array") && !symbol.getType().equals("return array") ){
+
+				}else{
+					//return "int";
+				}
+			}
+		}
+		/*Table tt = symbolTable.lookupModule(tree.getChild(0).getVal());
+		if(tt==null) {
+			// modulo nao existe?
+			Error rr = new Error(tree.getChild(0).getVal() ,tree.getChild(0).getLine(),"Module not defined: ");
+			error_list.add(rr);
+		}else if(tt!=null){
+			System.out.println("Modulo encontrado");
+			
+			String ss =tree.getChild(1).getVal();
+			System.out.println(ss);
+			Table func = tt.lookupFunction(ss);
+			
+			if(func==null){
+				Error rr = new Error(tree.getChild(1).getVal() ,tree.getChild(1).getLine(),"Function not defined: ");
 				error_list.add(rr);
 			}
-			
-
-			else if(tt!=null){
-				 System.out.println("Modulo encontrado");
-				
-				String ss =tree.getChild(1).getVal();
-				System.out.println(ss);
-				Table func = tt.lookupFunction(ss);
-				
-				if(func==null){
-					Error rr = new Error(tree.getChild(1).getVal() ,tree.getChild(1).getLine(),"Function not defined: ");
-					error_list.add(rr);
-				}
-				else
-				{
-					/*
-					 * 
-					 * 
-					 * 
-		
-		if(currFunct.getChildren().length > 1){
-						if(currFunct.getChild(1).getId().equals("Parameters")){
-							parameters = currFunct.getChild(1);
-							for(HIRTree param : parameters.getChildren()){
-								if(param.getId().equals("Array")){
-									funcTable.insert(param.getVal(), "parameter array", true);
-								}
-								else if(param.getId().equals("Id")){
-									funcTable.insert(param.getVal(), "parameter int", true);
-								}
+			else
+			{
+				/*
+				 * 
+				 * 
+				 * 
+	
+	if(currFunct.getChildren().length > 1){
+					if(currFunct.getChild(1).getId().equals("Parameters")){
+						parameters = currFunct.getChild(1);
+						for(HIRTree param : parameters.getChildren()){
+							if(param.getId().equals("Array")){
+								funcTable.insert(param.getVal(), "parameter array", true);
 							}
-					 */
-					
-					if(tree.getChild(2).getId().equals("ArgumentList")){
-						//	System.out.println(tree.getChild(2).getId();
-						HIRNode[] children = tree.getChild(2).getChildren();
-						//testar os argumentos
-				}
-			
-			
-			
-			
-		}
-			}}
+							else if(param.getId().equals("Id")){
+								funcTable.insert(param.getVal(), "parameter int", true);
+							}
+						}
+				 
+				
+				if(tree.getChild(2).getId().equals("ArgumentList")){
+					//	System.out.println(tree.getChild(2).getId();
+					HIRNode[] children = tree.getChild(2).getChildren();
+					//testar os argumentos
+				}			
+			}
+		}*/
+	}
 	
 	
 	
