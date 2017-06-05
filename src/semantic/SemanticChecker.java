@@ -116,7 +116,7 @@ public class SemanticChecker {
 		    				addArithm(subChild, symbolTable);
 		    			}
 		    		}
-	    		if(child.getId().equals("Assign")){
+	    		}else if(child.getId().equals("Assign")){
     				addAssign(child, symbolTable);
     			}else if(child.getId().equals("If")){
     				Table ifTable = new Table(symbolTable);
@@ -167,7 +167,7 @@ public class SemanticChecker {
 		    				addArithm(subChild, symbolTable);
 		    			}
 		    		}
-	    		if(child.getId().equals("Assign")){
+	    		}else if(child.getId().equals("Assign")){
     				addAssign(child, symbolTable);
     			}else if(child.getId().equals("If")){
     				Table ifTable = new Table(symbolTable);
