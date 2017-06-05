@@ -63,7 +63,9 @@ public class Table {
 	}
     
     public Table lookupFunction(String name){
- 	   if(!parent.getSymbol(0).getType().equals("module name")){
+		if(this.getVariables().isEmpty()){
+			 return parent.lookupFunction(name);
+		}else if(!this.getSymbol(0).getType().equals("module name")){
  		   return parent.lookupFunction(name);
  	   }
  	   else{
@@ -103,7 +105,7 @@ public class Table {
    
    public String getModuleName(){
 	   Table aux = this;
-	   while(aux.parent != null)
+	   while(!aux.tbl.get(0).getType().equals("module name"))
 		   aux = aux.parent;
 	   return aux.tbl.get(0).getName();
    }

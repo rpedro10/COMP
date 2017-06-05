@@ -31,8 +31,8 @@ public class CodeGenerator {
 	public void translator(StringBuilder jvm, HIRTree ast, Table st){
 		switch (ast.getId()){
 			case "Module":
-				//System.out.println("\n===CODE GENERATION===");
-				//symbolTable.dump("");
+				System.out.println("\n===CODE GENERATION===");
+				symbolTable.dump("");
 				setModuleHeader(st.getVariables().get(0).getName(), jvm);
 				if(st.getVariables().size() > 1) /*Se tiver globais definir agora*/
 					setGlobals(st.getVariables(), ast.getChild(1), jvm, st.getSymbol(0).getName()); 
@@ -432,7 +432,8 @@ public class CodeGenerator {
 				if(op.getChild(op.getChildren().length - 1).getChildren() != null)
 					curr = op.getChild(op.getChildren().length - 1).getChildren().length;
 			}else if(op.getId().equals("While") || op.getId().equals("If") || op.getId().equals("Else")){
-				curr = limitStack(new StringBuilder(), op, st);
+				if(op.getChildren() != null)
+					curr = limitStack(new StringBuilder(), op, st);
 			}
 			if(curr > max)
 				max = curr;
