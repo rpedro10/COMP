@@ -114,20 +114,24 @@ public class SemanticChecker {
 		    				addArithm(subChild, symbolTable);
 		    			}
 		    		}
-	    		}else if(child.getId().equals("Assign")){
-	    			addAssign(child,symbolTable);
 	    		}else if(child.getId().equals("If")){
-	    			Table ifTable = new Table(symbolTable);
+    				Table ifTable = new Table(symbolTable);
     				runSemanticCheck(child,ifTable);
-	    			//Criar nova tabela e preencher e depois adicionar a tabela function
-	    		}else if(child.getId().equals("While")){
-	    			Table whileTable = new Table(symbolTable);
+    				symbolTable.insertChildTable(ifTable);
+    				//Criar nova tabela e preencher e depois adicionar a tabela function
+    			}else if(child.getId().equals("Else")) {
+    				Table elseTable = new Table(symbolTable);
+    				runSemanticCheck(child,elseTable);
+    				symbolTable.insertChildTable(elseTable);
+    			}else if(child.getId().equals("While")){
+    				Table whileTable = new Table(symbolTable);
     				runSemanticCheck(child,whileTable);
-	    			//Criar nova tabela e preencher e depois adicionar a tabela function
-	    		}else if(child.getId().equals("Call")){
-	    			//isto pode estar aqui, ou é só no assign?
-	    			checkCall(child, symbolTable);
-	    		}
+    				symbolTable.insertChildTable(whileTable);
+    				//Criar nova tabela e preencher e depois adicionar a tabela function
+    			}else if(child.getId().equals("Call")){
+    				//isto pode estar aqui, ou é só no assign?
+    				checkCall(child, symbolTable);
+    			}
 	    	}
     		break;
     	case "While":
@@ -159,20 +163,24 @@ public class SemanticChecker {
 		    				addArithm(subChild, symbolTable);
 		    			}
 		    		}
-	    		}else if(child.getId().equals("Assign")){
-	    			addAssign(child,symbolTable);
 	    		}else if(child.getId().equals("If")){
-	    			Table ifTable = new Table(symbolTable);
+    				Table ifTable = new Table(symbolTable);
     				runSemanticCheck(child,ifTable);
-	    			//Criar nova tabela e preencher e depois adicionar a tabela function
-	    		}else if(child.getId().equals("While")){
-	    			Table whileTable = new Table(symbolTable);
+    				symbolTable.insertChildTable(ifTable);
+    				//Criar nova tabela e preencher e depois adicionar a tabela function
+    			}else if(child.getId().equals("Else")) {
+    				Table elseTable = new Table(symbolTable);
+    				runSemanticCheck(child,elseTable);
+    				symbolTable.insertChildTable(elseTable);
+    			}else if(child.getId().equals("While")){
+    				Table whileTable = new Table(symbolTable);
     				runSemanticCheck(child,whileTable);
-	    			//Criar nova tabela e preencher e depois adicionar a tabela function
-	    		}else if(child.getId().equals("Call")){
-	    			//isto pode estar aqui, ou é só no assign?
-	    			checkCall(child, symbolTable);
-	    		}
+    				symbolTable.insertChildTable(whileTable);
+    				//Criar nova tabela e preencher e depois adicionar a tabela function
+    			}else if(child.getId().equals("Call")){
+    				//isto pode estar aqui, ou é só no assign?
+    				checkCall(child, symbolTable);
+    			}
 	    	}
     		break;
     	}
@@ -346,6 +354,24 @@ public class SemanticChecker {
 					//erro\warning not initialized
 					Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine(),"Variable is not initialized: ");
 					error_list.add(rr);
+				}else if(tree.getChild(i).getChild(1).getId().equals("ArrayAccess")){
+					try{
+						Integer.parseInt(tree.getChild(i).getChild(1).getVal());
+					}catch(Exception e){
+						lookup = symbolTable.lookup(tree.getChild(i).getChild(1).getVal());
+						if(lookup==null){
+							//erro not defined;
+							Error rr = new Error(tree.getChild(i).getChild(1).getVal(),tree.getChild(i).getChild(1).getLine(),"Variable is not defined: ");
+							error_list.add(rr);
+						}else if(!lookup.getType().equals("int") && !lookup.getType().equals("parameter int") && !lookup.getType().equals("return int")){
+							Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine(),"Variable is not an integer: ");
+							error_list.add(rr);
+						}else if(!lookup.isInitialized()){
+							//erro\warning not initialized
+							Error rr = new Error(tree.getChild(i).getChild(0).getVal(),tree.getChild(i).getChild(0).getLine(),"Variable is not initialized: ");
+							error_list.add(rr);
+						}
+					}
 				}
 			}else if(tree.getChild(i).getId().equals("Call")){
 				checkCall(tree.getChild(i), symbolTable);
@@ -464,10 +490,7 @@ public class SemanticChecker {
 		}
 	}
 
-		
-
-
-		public void checkCall(HIRTree tree, Table symbolTable){
+	public void checkCall(HIRTree tree, Table symbolTable){
 			
 
 			// io.println
@@ -517,7 +540,7 @@ public class SemanticChecker {
 				}
 				else
 				{
-					/**
+					/*
 					 * 
 					 * 
 					 * 
@@ -548,15 +571,16 @@ public class SemanticChecker {
 			}}
 	
 	
+	
 		/**
 		f( io ){
-		    if(fun�oes do io){
-		        verifica�oes (ja tao feitas)
+		    if(fun�oes do io){
+		        verifica�oes (ja tao feitas)
 		    }
 		}else if (verfica se e um modulo)
-		    if(verifica se e fun�ao)
+		    if(verifica se e fun�ao)
 		         stuff needed
-		else if(verifica se e fun�ao deste file)
+		else if(verifica se e fun�ao deste file)
 		     stuff needed
 		*/
 		//
