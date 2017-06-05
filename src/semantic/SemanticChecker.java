@@ -7,8 +7,9 @@ public class SemanticChecker {
 	private ArrayList<Error> error_list;
 	private int errorCount;
 
-	public SemanticChecker(){
-		symbolTable = new Table();
+	public SemanticChecker(Table rootTable){
+		symbolTable = new Table(rootTable);
+		rootTable.insertChildTable(symbolTable);
 		errorCount = 0;
 		error_list = new ArrayList<Error>();
 	}
