@@ -7,6 +7,7 @@
 PARSER_BEGIN(Parser)
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 {/*@bgen(jjtree)*/
@@ -26,8 +27,8 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 			SimpleNode root = simpleParser.Module();
 			semantic.HIRTree hir = new semantic.HIRTree();
 			semantic.SemanticChecker smc=  new semantic.SemanticChecker();
-	  	//	root.dump("", hir);
-	  	//	hir.dump("");
+	  		root.dump("", hir);
+	  		hir.dump("");
 	  		smc.runSemanticCheck(hir, smc.getTable());
 
 	  		  ArrayList<semantic.Error>erros = smc.getError_list();
@@ -36,8 +37,10 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
                         	erros.get(i).printError();
                         	System.out.println("----");
                         }
+            if(erros.size() < 1) { 
 	  		codeGenerator.CodeGenerator cg = new codeGenerator.CodeGenerator(hir, smc.getTable());
 	  		cg.generateCode();
+	  	}
 
 	  	}catch(IOException e){
 	  		e.printStackTrace();
@@ -478,7 +481,7 @@ void Call(): {/*@bgen(jjtree) Call */
 {/*@bgen(jjtree) Call */
          try {
 /*@egen*/
-	 Id() ( ( "." Id() )? <LPAR> ( ArgumentList() )? <RPAR> ) | ".size"/*@bgen(jjtree)*/
+	 Id() ( ( ( "." Id() )? <LPAR> ( ArgumentList() )? <RPAR> ) | SizeAccess() )/*@bgen(jjtree)*/
          } catch (Throwable jjte000) {
            if (jjtc000) {
              jjtree.clearNodeScope(jjtn000);
@@ -500,6 +503,29 @@ void Call(): {/*@bgen(jjtree) Call */
          }
 /*@egen*/
 }
+
+void SizeAccess(): {/*@bgen(jjtree) SizeAccess */
+  SimpleNode jjtn000 = new SimpleNode(JJTSIZEACCESS);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+/*@egen*/ }
+{/*@bgen(jjtree) SizeAccess */
+        try {
+/*@egen*/
+	".size"/*@bgen(jjtree)*/
+                {
+                  jjtree.closeNodeScope(jjtn000, true);
+                  jjtc000 = false;
+                }
+/*@egen*/ { jjtn000.val = null;}/*@bgen(jjtree)*/
+        } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+          }
+        }
+/*@egen*/
+}
+
 void Assign(): {/*@bgen(jjtree) Assign */
                  SimpleNode jjtn000 = new SimpleNode(JJTASSIGN);
                  boolean jjtc000 = true;
@@ -626,7 +652,7 @@ void ArraySize(): {/*@bgen(jjtree) ArraySize */
 {/*@bgen(jjtree) ArraySize */
         try {
 /*@egen*/
-	Id() ScalarAccess() | Integer()/*@bgen(jjtree)*/
+	(Id() ScalarAccess()) | Integer()/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -656,7 +682,7 @@ void Term(): {/*@bgen(jjtree) Term */
 {/*@bgen(jjtree) Term */
         try {
 /*@egen*/
-	( <ADDSUB_OP> )? ( Integer() | LOOKAHEAD(Call()) Call() | Id() ( ArrayAccess() | ScalarAccess()))/*@bgen(jjtree)*/
+	( <ADDSUB_OP> )? ( Integer() | ( LOOKAHEAD(Call()) Call() | (Id() ( ArrayAccess() | ScalarAccess())) ) )/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -676,7 +702,7 @@ void Term(): {/*@bgen(jjtree) Term */
             jjtree.closeNodeScope(jjtn000, true);
           }
         }
-/*@egen*/ // ID
+/*@egen*/  // ID
 }
 
 void Exprtest(): {/*@bgen(jjtree) Exprtest */

@@ -29,12 +29,13 @@ public class Parser
 
 	  		  ArrayList<semantic.Error>erros = smc.getError_list();
                         
-                        for (int i=0;i<12;i++){
+                        for (int i=0;i<erros.size();i++){
                         	erros.get(i).printError();
-                        	System.out.println("----");
                         }
+            if(erros.size() == 0) { 
 	  		codeGenerator.CodeGenerator cg = new codeGenerator.CodeGenerator(hir, smc.getTable());
 	  		cg.generateCode();
+	  	}
 
 	  	}catch(IOException e){
 	  		e.printStackTrace();
@@ -153,8 +154,14 @@ void Stmt()#void: { }
 }
 void Call(): {}
 {
-	 Id() ( ( ( "." Id() )? <LPAR> ( ArgumentList() )? <RPAR> ) | ".size" )
+	 Id() ( ( ( "." Id() )? <LPAR> ( ArgumentList() )? <RPAR> ) | SizeAccess() )
 }
+
+void SizeAccess(): { }
+{
+	".size" { jjtThis.val = null;}
+}
+
 void Assign(): { Token assign; }
 {
 	Lhs()#Array(>1) assign=< ASSIGN > { jjtThis.val = assign.image; }(LOOKAHEAD(3) Rhs() | Call())<PVIRG>

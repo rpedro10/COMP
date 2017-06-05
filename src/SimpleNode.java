@@ -170,7 +170,7 @@ class SimpleNode implements Node {
         }
       }
     }else{
-    	//System.out.println(toString(prefix) + ": " + this.val);
+    	
     	hr.setContents(toString(), this.val);
     	}
   }

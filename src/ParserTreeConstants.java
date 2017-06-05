@@ -15,18 +15,19 @@ public interface ParserTreeConstants
   public int JJTPARAM = 11;
   public int JJTARRAYELEMENT = 12;
   public int JJTCALL = 13;
-  public int JJTASSIGN = 14;
-  public int JJTRHS = 15;
-  public int JJTARRAYACCESS = 16;
-  public int JJTARRAYSIZE = 17;
-  public int JJTTERM = 18;
-  public int JJTEXPRTEST = 19;
-  public int JJTWHILE = 20;
-  public int JJTIF = 21;
-  public int JJTELSE = 22;
-  public int JJTARGUMENTLIST = 23;
-  public int JJTSTRING = 24;
-  public int JJTINDEX = 25;
+  public int JJTSIZEACCESS = 14;
+  public int JJTASSIGN = 15;
+  public int JJTRHS = 16;
+  public int JJTARRAYACCESS = 17;
+  public int JJTARRAYSIZE = 18;
+  public int JJTTERM = 19;
+  public int JJTEXPRTEST = 20;
+  public int JJTWHILE = 21;
+  public int JJTIF = 22;
+  public int JJTELSE = 23;
+  public int JJTARGUMENTLIST = 24;
+  public int JJTSTRING = 25;
+  public int JJTINDEX = 26;
 
 
   public String[] jjtNodeName = {
@@ -44,6 +45,7 @@ public interface ParserTreeConstants
     "param",
     "ArrayElement",
     "Call",
+    "SizeAccess",
     "Assign",
     "Rhs",
     "ArrayAccess",
@@ -58,4 +60,4 @@ public interface ParserTreeConstants
     "Index",
   };
 }
-/* JavaCC - OriginalChecksum=0f05e1cd0e0f74ec4c860b0e3d47785d (do not edit this line) */
+/* JavaCC - OriginalChecksum=bd2ac8b081bac93c06fa573d1338880a (do not edit this line) */

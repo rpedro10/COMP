@@ -3,19 +3,8 @@ module Hello{
 	b = 2;
 	
 	function main(){
-		x = [3];
-		x = 10;
-		n = 2;
-		while(n >= 0 ){
-			z = n*x[n];
-			io.println("Value: ",z);
-			n = n - 1;
-		}
-		f1(n);
-	}
-	
-	function f1(n){
-		a = 9*n;
-		io.println("Function:", a);
+		a = [3];
+		a = 5;
+		b = a.size;
 	}
 }
