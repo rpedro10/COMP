@@ -1,0 +1,26 @@
+module Test{
+	
+	// a=2;
+	c;
+	function a=main(N, B[]) {
+		a=3; //Comment
+		i=0;
+		b = [-2];
+		b[] = 10;
+		if(N > 12){
+			i=i+1;
+			d=12;
+			d=d+1;
+			N = 30;
+		}else{
+			N = k;
+		}
+		while(i <k){
+			a = N * b[i];
+			i = i+ 1;
+		}
+		 a = io.Hello(i,b);
+	}
+	
+	
+}
